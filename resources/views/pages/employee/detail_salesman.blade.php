@@ -8,7 +8,7 @@
                 <h1 class="m-0">Data Sales</h1>
             </div>
             <div class="col-sm-6">
-                <a class="btn btn-success float-right" href="{{ route('salesman.list') }}"><i class="fa fa-undo"></i> Kembali</a>
+                <a class="btn btn-success float-right" href="{{ route('salesman.list') }}"><i class="fa fa-arrow-left"></i> Kembali</a>
             </div>
         </div><!-- /.row -->
     </div><!-- /.container-fluid -->
@@ -40,12 +40,16 @@
                                 <td colspan="3" style="font-style: italic;">{{ $salesman->address }}</td>
                             </tr>
                             <tr>
-                                <td style="background-color: whitesmoke; font-weight: bold;" colspan="2">Total Transaksi</td>
+                                <td style="background-color: whitesmoke; font-weight: bold;" colspan="2">Jumlah Transaksi</td>
                                 <td style="font-style: italic;" colspan="2">{{ $total_order }}</td>
                             </tr>
                             <tr>
                                 <td style="background-color: whitesmoke; font-weight: bold;" colspan="2">Total Nominal Transaksi</td>
                                 <td style="font-style: italic;" colspan="2">Rp. {{ strrev(implode('.',str_split(strrev(strval( $total_grandtotal )),3))) }}</td>
+                            </tr>
+                            <tr>
+                                <td style="background-color: whitesmoke; font-weight: bold;" colspan="2">Total Nominal Piutang</td>
+                                <td style="font-style: italic;" colspan="2">Rp. {{ strrev(implode('.',str_split(strrev(strval( $total_remaining )),3))) }}</td>
                             </tr>
                             <tr>
                                 <td style="background-color: whitesmoke; font-weight: bold;" colspan="2">Persentase Penjualan</td>
@@ -130,7 +134,7 @@
                                         <label>&nbsp;</label>
                                     </div>
                                     <div class="btn-group col-sm-12">
-                                        <button type="submit" class="btn btn-info" onClick="getDetail('{{ $salesman->id }}')"><i class="fas fa-search"></i></button>
+                                        <button type="submit" class="btn btn-info"><i class="fas fa-search"></i></button>
                                         <a class="btn btn-default" href="{{ route('salesman.detail', $salesman->id) }}"><i class="fas fa-undo"></i></a>
                                     </div>
                                 </div>

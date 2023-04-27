@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Branch;
 use App\Models\Category;
+use App\Models\Order;
+use App\Models\Order_detail;
 use App\Models\Product;
 use App\Models\Stock;
 use App\Models\Stock_transaction;
@@ -14,6 +16,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 use DB;
+
+use function PHPSTORM_META\map;
 
 class StockController extends Controller
 {
@@ -93,76 +97,84 @@ class StockController extends Controller
 
     public function detailTransactionCatalog($id) {
         $product = Stock_transaction_detail::where('stock_id', $id)->first();
+        $product_name = Stock::find($id);
         $stocks = DB::table('stock_transaction_details')
                         ->select(
                             'stock_transactions.invoice',
                             'stock_transactions.date',
                             'stock_transactions.type',
-                            'stock_transaction_details.qty'
+                            'stock_transaction_details.qty',
+                            'suppliers.name as company'
                         )
                         ->join('stock_transactions', 'stock_transaction_details.stock_transaction_id', '=', 'stock_transactions.id')
                         ->join('stocks', 'stock_transaction_details.stock_id', '=', 'stocks.id')
                         ->join('products', 'stocks.product_id', '=', 'products.id')
+                        ->join('suppliers', 'stock_transactions.supplier_id', '=', 'suppliers.id')
                         ->where('stock_transaction_details.stock_id', $id)
                         ->get();
-        
+
         $orders = DB::table('order_details')
                         ->select(
                             'orders.invoice',
                             'orders.date',
                             'orders.status',
-                            'order_details.qty'
+                            'order_details.qty',
+                            'customers.company'
                         )
                         ->join('orders', 'order_details.order_id', '=', 'orders.id')
                         ->join('products', 'order_details.product_id', '=', 'products.id')
                         ->join('stocks', 'products.id', '=', 'stocks.product_id')
+                        ->join('customers', 'orders.customer_id', '=', 'customers.id')
                         ->where([
                             ['stocks.id', $id],
                             ['orders.status', 'print']
                         ])
                         ->get();
-        
+
+        //Memperbarui data order(Menambahkan hasil retur yang telah tersedia disetap invoices jika ada)
+        $productId = Stock::with("product")->find($id);
+
+        if($productId->product!=null) {
+            $productId = $productId->product->id;
+            $orders = $orders->map(function($e) use($productId){
+
+                //Mendeteksi jika ada retur yang miliki referensi ke nomer invoice $e
+                $returedOrder = Order::where("return",$e->invoice)->pluck("id")->first();
+
+                if($returedOrder){
+                //Mendapatkan kuantitas Retur
+                $returQty = Order_detail::where("order_id",$returedOrder)->where("product_id",$productId)->pluck("qty")->first();
+                
+                //Mendapatkan kuantitas yg sudah ada dengan data retur
+                $e->qty += $returQty;
+                }
+            
+                return $e;
+            });
+        }
+      
         $return = DB::table('order_details')
                         ->select(
                             'orders.invoice',
                             'orders.date',
                             'orders.status',
                             'orders.return',
-                            'order_details.qty'
+                            'order_details.qty',
+                            'customers.company'
                         )
                         ->join('orders', 'order_details.order_id', '=', 'orders.id')
                         ->join('products', 'order_details.product_id', '=', 'products.id')
                         ->join('stocks', 'products.id', '=', 'stocks.product_id')
+                        ->join('customers', 'orders.customer_id', '=', 'customers.id')
                         ->where([
                             ['stocks.id', $id],
                             ['orders.status', 'return']
                         ])
                         ->get();
         
-        $before_return = DB::table('order_details')
-                        ->select(
-                            'orders.invoice',
-                            'orders.date',
-                            'orders.status',
-                            'orders.return',
-                            DB::raw('sum(order_details.qty) as qty')
-                        )
-                        ->join('orders', 'order_details.order_id', '=', 'orders.id')
-                        ->join('products', 'order_details.product_id', '=', 'products.id')
-                        ->join('stocks', 'products.id', '=', 'stocks.product_id')
-                        ->where('stocks.id', $id)
-                        ->whereColumn('orders.invoice','=','orders.return')
-                        ->groupBy('order_details.product_id')
-                        ->get();
-                        
-        $i = DB::table('orders')
-            ->join('order_details', 'orders.id', '=', 'order_details.order_id')
-            ->select('order_details.qty')
-            ->get();
+        $detail = $stocks->merge($orders)->merge($return)->sortBy('date');
         
-        $detail = $stocks->merge($orders)->merge($return)->merge($before_return)->sortBy('date');
-        
-        return view('pages.stock.detail_stock_transaction', compact('product','detail', 'i'));
+        return view('pages.stock.detail_stock_transaction', compact('product','detail','product_name'));
     }
 
     public function catalogDelete($id) {

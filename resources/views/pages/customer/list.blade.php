@@ -57,7 +57,7 @@
                         <td>{{ $a->salesman }}</td>
                         <td>
                             <div class="btn-group">
-                                <button type="button" class="btn btn-sm btn-info" onclick="detail('{{ $a->id }}')"><i class="fas fa-search" title="Detail Data"></i></button>
+                                <a class="btn btn-sm btn-info" href="{{ route('customer.detail', $a->id) }}"><i class="fas fa-search" title="Detail Data"></i></a>
                                 <button type="button" class="btn btn-sm btn-warning" onclick="edit('{{ $a->id }}')"><i class="fas fa-edit" title="Ubah Data"></i></button>
                             </div>
                         </td>

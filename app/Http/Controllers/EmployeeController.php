@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Area;
 use App\Models\Branch;
+use App\Models\Credit;
 use App\Models\Order;
 use App\Models\Customer;
 use App\Models\Order_detail;
@@ -179,34 +180,50 @@ class EmployeeController extends Controller
                             ['salesman_id', $id],
                             ['status', 'print']
                         ]);
+                    
+        $credits   = DB::table('credits')
+                        ->select(
+                            DB::raw('sum(credits.remaining) as total_remaining')
+                        )
+                        ->join('orders','credits.order_id','=','orders.id')
+                        ->where([
+                            ['orders.salesman_id', $id],
+                            ['credits.status','Belum Lunas']
+                        ])
+                        ->groupBy('orders.salesman_id');
 
         if($filter == 'Hari Ini' || $filter == Null) {
             $customers = $customers->where('orders.date', now()->today()->format('Y-m-d'))->get();
             $orders    = $orders->where('date', now()->today()->format('Y-m-d'))->get();
+            $credits   = $credits->where(DB::raw('substr(credits.created_at,1,7)'), now()->today()->format('Y-m-d'))->get();
             $date      = now()->today()->format('d M Y');
         }
 
         if($filter == 'Tanggal') {
             $customers = $customers->where('orders.date', $date_selected)->get();
             $orders    = $orders->where('date', $date_selected)->get();
+            $credits   = $credits->where(DB::raw('substr(credits.created_at,1,10)'), $date_selected)->get();
             $date      = Carbon::parse($date_selected)->format('d M Y');
         }
 
         if($filter == 'Bulan') {
             $customers = $customers->where(DB::raw('substr(orders.date,1,7)'), $month_selected)->get();
             $orders    = $orders->where(DB::raw('substr(date,1,7)'), $month_selected)->get();
+            $credits   = $credits->where(DB::raw('substr(credits.created_at,1,7)'), $month_selected)->get();
             $date      = Carbon::parse($month_selected)->format('M').' '.date('Y');
         }
 
         if($filter == 'Tahun') {
             $customers = $customers->where(DB::raw('substr(orders.date,1,4)'), $year_selected)->get();
             $orders    = $orders->where(DB::raw('substr(date,1,4)'), $year_selected)->get();
+            $credits   = $credits->where(DB::raw('substr(credits.created_at,1,4)'), $date_selected)->get();
             $date      = Carbon::parse($year_selected)->format('Y');
         }
 
         if($filter == 'custom') {
             $customers = $customers->whereBetween('date', [$date_start, $date_end])->get();
             $orders    = $orders->whereBetween('date', [$date_start, $date_end])->get();
+            $credits   = $credits->whereBetween(DB::raw('substr(credits.created_at,1,10)'), [$date_start, $date_end])->get();
             $startDate = Carbon::parse($request->date_start)->format('d M Y');
             $endDate   = Carbon::parse($request->date_end)->format('d M Y');
             $date      = $startDate.' sampai '.$endDate;
@@ -214,20 +231,23 @@ class EmployeeController extends Controller
 
         $total_order = $orders->count();
         $total_grandtotal = $orders->sum('grandtotal');
+        $total_remaining = $credits->sum('total_remaining');
         $all_grandtotal = Order::where('status','print')->sum('grandtotal');
         $percentage  = ($total_grandtotal > 0) ? ($total_grandtotal / $all_grandtotal) * 100 : 0;
         
-        return view('pages.employee.detail_salesman', compact('date','months','salesman','customers','total_order','total_grandtotal','percentage'));
+        return view('pages.employee.detail_salesman', compact('date','months','salesman','customers','total_order','total_grandtotal','total_remaining','percentage'));
     }
 
     public function getSalesmanDetail($id) {
         $orders = Order::where([
             ['customer_id', $id],
             ['status', 'print']
-        ])->get();
+        ])
+        ->orderBy('invoice')
+        ->get();
         $order_detail = Order_detail::get();
 
-        return view('pages.employee.edit_salesman', compact('orders','order_detail'));
+        return view('pages.employee.detail_invoice_salesman', compact('orders','order_detail'));
     }
 
     public function area_list() {

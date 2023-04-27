@@ -11,13 +11,51 @@
                 <tbody>
                     <?php $no = 0 ?>
                     @forelse($orders as $order)
+                    @if($order->payment_method == 'credit')
+                    <tr style="background-color:lightsalmon; font-weight:bold;">
+                        <td>Tanggal</td>
+                        <td>Invoice</td>
+                        <td>Jth Tempo</td>
+                        <td>Grandtotal</td>
+                        <td>Hutang</td>
+                        <td>Pembayaran</td>
+                    </tr>
+                    <tr>
+                        <td>{{ date('d-m-Y', strtotime($order->date)) }}</td>
+                        <td>{{ $order->invoice }}</td>
+                        <td>{{ date('d-m-Y', strtotime($order->due)) }}</td>
+                        <td>Rp. {{ strrev(implode('.',str_split(strrev(strval( $order->grandtotal )),3))) }}</td>
+                        <td style="color:red;">
+                            Rp. {{ strrev(implode('.',str_split(strrev(strval( $order->credit->whereHas('order', function($query) use ($order) {
+                                $query->where('id', $order->id);
+                            })->first()->remaining)),3))) }}
+                        </td>
+                        <td style="font-style: italic;">{{ $order->payment_method }}</td>
+                    </tr>
+                    @else
                     <tr style="background-color: lightblue; font-weight:bold;">
+                        <td>Tanggal</td>
+                        <td>Invoice</td>
+                        <td>Subtotal</td>
+                        <td>Pengiriman</td>
+                        <td>Grandtotal</td>
+                        <td>Pembayaran</td>
+                    </tr>
+                    <tr>
                         <td>{{ date('d-m-Y', strtotime($order->date)) }}</td>
                         <td>{{ $order->invoice }}</td>
                         <td>Rp. {{ strrev(implode('.',str_split(strrev(strval( $order->subtotal )),3))) }}</td>
                         <td>Rp. {{ strrev(implode('.',str_split(strrev(strval( $order->delivery )),3))) }}</td>
                         <td>Rp. {{ strrev(implode('.',str_split(strrev(strval( $order->grandtotal )),3))) }}</td>
-                        <td>{{ $order->payment_method }}</td>
+                        <td style="font-style: italic;">{{ $order->payment_method }}</td>
+                    </tr>
+                    @endif
+                    <tr style="background-color:whitesmoke; font-weight:bold;">
+                        <td colspan="2">Produk</td>
+                        <td>Jumlah</td>
+                        <td>Harga</td>
+                        <td>Diskon</td>
+                        <td>Total</td>
                     </tr>
                         @foreach($order_detail->where('order_id', $order->id) as $data)
                         <tr>
@@ -35,9 +73,6 @@
                     @endforelse
                 </tbody>
             </table>
-        </div>
-        <div class="modal-footer">
-            <button type="submit" class="btn btn-primary">Ubah</button>
         </div>
     </div>
     <!-- /.modal-content -->

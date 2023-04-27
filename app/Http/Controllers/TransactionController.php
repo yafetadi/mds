@@ -300,6 +300,12 @@ class TransactionController extends Controller
         $order_old->grandtotal = $order_detail->sum('total') + $order_old->delivery;
         $order_old->save();
 
+        $credit = Credit::where('order_id',$id)->first();
+        $credit_detail = Credit_detail::where('credit_id',$credit->id)->get();
+        $credit->nominal = $order_old->grandtotal;
+        $credit->remaining = $order_old->grandtotal - $credit_detail->sum('nominal');
+        $credit->save();
+
         return redirect()->back()->with('success', 'Data berhasil diretur');
     }
 

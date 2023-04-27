@@ -76,7 +76,9 @@
                         <th>Kategori</th>
                         <th>Cabang</th>
                         <th>PJ</th>
+                        @can('isOwner')
                         <th><i class="fa fa-cog"></i></th>
+                        @endcan
                     </tr>
                 </thead>
                 <tbody>
@@ -90,9 +92,11 @@
                         <td>{{ $operational->operational_category->name }}</td>
                         <td>{{ $operational->branch->name }}</td>
                         <td>{{ $operational->user->name }}</td>
+                        @can('isOwner')
                         <td>
                             <button class="btn btn-warning btn-sm" onclick="edit('{{ $operational->id }}')"><i class="fa fa-edit"></i></button>
                         </td>
+                        @endcan
                     </tr>
                     @empty
                     <tr>
