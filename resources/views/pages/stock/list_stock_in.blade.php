@@ -248,7 +248,7 @@
                             <select class="form-control select2bs4" name="addProduct[0][stock_id]" required>
                                 <option disabled>== Pilih Produk ==</option>
                                 @foreach($stocks as $product)
-                                <option value="{{ $product->id }}">{{ $product->code }} - {{ $product->name }}</option>
+                                <option value="{{ $product->id }}">{{ $product->code }} - {{ $product->name }} - ({{ $product->unit }})</option>
                                 @endforeach
                             </select>
                         </div>
@@ -339,7 +339,7 @@
         let product = "{{ $stocks }}";
         let u = JSON.parse(product.replace(/&quot;/ig, '"'));
         let o = u.map(function(o) {
-            return `<option value="${o['id']}">${o['code']} -${o['name']}</option>`
+            return `<option value="${o['id']}">${o['code']} - ${o['name']} - (${o['unit']})</option>`
         });
 
         ++p;

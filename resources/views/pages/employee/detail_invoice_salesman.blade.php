@@ -1,7 +1,7 @@
 <div class="modal-dialog modal-lg">
     <div class="modal-content">
         <div class="modal-header">
-            <h4 class="modal-title">Data Transaksi</h4>
+            <h4 class="modal-title">Data Transaksi: {{ $orders[0]->customer->company }}</h4>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -12,7 +12,7 @@
                     <?php $no = 0 ?>
                     @forelse($orders as $order)
                     @if($order->payment_method == 'credit')
-                    <tr style="background-color:lightsalmon; font-weight:bold;">
+                    <tr style="background-color:darkorange; font-weight:bold; color:white;">
                         <td>Tanggal</td>
                         <td>Invoice</td>
                         <td>Jth Tempo</td>
@@ -33,7 +33,7 @@
                         <td style="font-style: italic;">{{ $order->payment_method }}</td>
                     </tr>
                     @else
-                    <tr style="background-color: lightblue; font-weight:bold;">
+                    <tr style="background-color:darkgreen; font-weight:bold; color:white;">
                         <td>Tanggal</td>
                         <td>Invoice</td>
                         <td>Subtotal</td>

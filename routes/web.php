@@ -136,6 +136,8 @@ Route::controller(OperationalController::class)->middleware('auth')->group(funct
     Route::get('/operational/category/edit/{id}', 'editCategory');
     Route::post('/operational/category/update/{id}', 'updateCategory')->name('category.update');
     Route::delete('/operational/category/delete/{id}', 'deleteCategory')->name('category.delete');
+    Route::get('/operational/category/getcategory', 'getKeteranganFromKategori');
+    Route::post('/operational/saldo-awal-store', 'saldoAwalStore')->name('category.saldoAwalStore');
 });
 
 Route::controller(ReportController::class)->middleware('auth')->group(function () {

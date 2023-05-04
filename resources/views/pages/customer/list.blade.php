@@ -34,9 +34,7 @@
                     <tr>
                         <th>No.</th>
                         <th>Perusahaan</th>
-                        <th>Nama</th>
                         <th>Telepon</th>
-                        <th>Alamat</th>
                         <th>Kota</th>
                         <th>Tenor</th>
                         <th>Salesman</th>
@@ -49,9 +47,7 @@
                     <tr>
                         <td>{{ ++$no }}</td>
                         <td>{{ $a->company }}</td>
-                        <td>{{ $a->name }}</td>
                         <td>{{ $a->phone }}</td>
-                        <td>{{ $a->address }}</td>
                         <td>{{ $a->city }}</td>
                         <td>{{ $a->tenor }}</td>
                         <td>{{ $a->salesman }}</td>

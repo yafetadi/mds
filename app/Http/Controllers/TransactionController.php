@@ -39,6 +39,7 @@ class TransactionController extends Controller
         );
         $now            = Carbon::now()->format('Y-m-d');
         $user_branch_id = Auth::user()->branch_id;
+        $invoice        = $request->invoice;
         $filter         = $request->filter;
         $branch         = $request->branch;
         $date_selected  = $request->date_selected;
@@ -60,6 +61,9 @@ class TransactionController extends Controller
                                 ->join('branches','orders.branch_id','=','branches.id')
                                 ->join('customers', 'orders.customer_id', '=', 'customers.id')
                                 ->join('users', 'customers.user_id', '=', 'users.id')
+                                ->when($invoice, function ($query) use ($invoice) {
+                                    $query->where('orders.invoice', $invoice);
+                                })
                                 ->orderBy('orders.created_at')
                                 ->where('orders.status', '<>', 'draft');
         } else {
@@ -75,6 +79,9 @@ class TransactionController extends Controller
                                 ->join('branches','orders.branch_id','=','branches.id')
                                 ->join('customers', 'orders.customer_id', '=', 'customers.id')
                                 ->join('users', 'customers.user_id', '=', 'users.id')
+                                ->when($invoice, function ($query) use ($invoice) {
+                                    $query->where('orders.invoice', $invoice);
+                                })
                                 ->orderBy('orders.created_at')
                                 ->where([
                                     ['orders.status', '<>', 'draft'],
@@ -87,65 +94,6 @@ class TransactionController extends Controller
         } else {
             $transaction = $transaction->where('orders.branch_id', $branch);
         }
-
-        // if($filter == Null) {
-        //     $transaction = $transaction->where(DB::raw('substr(orders.updated_at,1,10)'), now()->today()->format('Y-m-d'))->paginate(10)->withQueryString();
-
-        //     $date = now()->today()->format('d M Y');
-        // }
-
-        // if($filter == 'Hari Ini') {
-        //     $transaction = $transaction->where(DB::raw('substr(orders.updated_at,1,10)'), now()->today()->format('Y-m-d'))->paginate(10)->withQueryString();
-
-        //     $date = now()->today()->format('d M Y');
-        // }
-
-        // if($filter == 'Minggu Ini') {
-        //     $startOfWeek = now()->startOfWeek()->format('Y-m-d');
-        //     $endOfWeek   = now()->endOfWeek()->format('Y-m-d');
-        //     $transaction = $transaction->whereBetween(DB::raw('substr(orders.updated_at,1,10)'), [$startOfWeek, $endOfWeek])->paginate(10)->withQueryString();
-
-        //     $startWeek = now()->startOfWeek()->format('d M Y');
-        //     $endWeek   = now()->endOfWeek()->format('d M Y');
-        //     $date      = $startWeek.' sampai '.$endWeek;
-        // }
-
-        // if($filter == 'Bulan Ini') {
-        //     $startOfMonth = now()->startOfMonth()->format('Y-m-d');
-        //     $endOfMonth   = now()->endOfMonth()->format('Y-m-d');
-        //     $transaction  = $transaction->whereBetween(DB::raw('substr(orders.updated_at,1,10)'), [$startOfMonth, $endOfMonth])->paginate(10)->withQueryString();
-
-        //     $startMonth = now()->startOfMonth()->format('d M Y');
-        //     $endMonth   = now()->endOfMonth()->format('d M Y');
-        //     $date       = $startMonth.' sampai '.$endMonth;
-        // }
-
-        // if($filter == 'Hari Kemarin') {
-        //     $transaction = $transaction->where(DB::raw('substr(orders.updated_at,1,10)'), now()->yesterday()->format('Y-m-d'))->paginate(10)->withQueryString();
-
-        //     $date = now()->yesterday()->format('d M Y');
-        // }
-
-        // if($filter == 'Minggu Kemarin') {
-        //     $startOfWeek = now()->subWeek()->startOfWeek()->format('Y-m-d');
-        //     $endOfWeek   = now()->subWeek()->endOfWeek()->format('Y-m-d');
-        //     $transaction = $transaction->whereBetween(DB::raw('substr(orders.updated_at,1,10)'), [$startOfWeek, $endOfWeek])->paginate(10)->withQueryString();
-
-        //     $startWeek = now()->subWeek()->startOfWeek()->format('d M Y');
-        //     $endWeek   = now()->subWeek()->endOfWeek()->format('d M Y');
-        //     $date      = $startWeek.' sampai '.$endWeek;
-        // }
-
-        // if($filter == 'Bulan Kemarin') {
-        //     $startOfMonth = now()->subMonth()->startOfMonth()->format('Y-m-d');
-        //     $endOfMonth   = now()->subMonth()->endOfMonth()->format('Y-m-d');
-        //     $transaction  = $transaction->whereBetween(DB::raw('substr(orders.updated_at,1,10)'), [$startOfMonth, $endOfMonth])->paginate(10)->withQueryString();
-
-
-        //     $startMonth = now()->subMonth()->startOfMonth()->format('d M Y');
-        //     $endMonth   = now()->subMonth()->endOfMonth()->format('d M Y');
-        //     $date       = $startMonth.' sampai '.$endMonth;
-        // }
 
         if($filter == 'Hari Ini' || $filter == Null) {
             $transaction = $transaction->where('orders.date', now()->today()->format('Y-m-d'))->paginate(10)->withQueryString();
@@ -377,9 +325,10 @@ class TransactionController extends Controller
         //     "12" => "Desember"
         // );
         // $now            = Carbon::now()->format('Y-m-d');
-        // $user_branch_id = Auth::user()->branch_id;
+        $user_branch_id = Auth::user()->branch_id;
         // $filter         = $request->filter;
         $branch         = $request->branch;
+        $keyword        = $request->keyword;
         // $date_selected  = $request->date_selected;
         // $month_selected = date('Y').'-'.$request->month_selected;
         // $year_selected  = $request->year_selected;
@@ -400,6 +349,9 @@ class TransactionController extends Controller
                                 ->join('branches','orders.branch_id','=','branches.id')
                                 ->join('customers', 'orders.customer_id', '=', 'customers.id')
                                 ->join('credits', 'orders.id', '=', 'credits.order_id')
+                                ->when($keyword, function ($query) use ($keyword) {
+                                    $query->where('customers.company', 'like', '%'.$keyword.'%');
+                                })
                                 ->orderBy('customers.company')
                                 ->groupBy('orders.customer_id')
                                 ->where([
@@ -419,6 +371,9 @@ class TransactionController extends Controller
                                 ->join('branches','orders.branch_id','=','branches.id')
                                 ->join('customers', 'orders.customer_id', '=', 'customers.id')
                                 ->join('credits', 'orders.id', '=', 'credits.order_id')
+                                ->when($keyword, function ($query) use ($keyword) {
+                                    $query->where('customers.company', 'like', '%'.$keyword.'%');
+                                })
                                 ->orderBy('customers.company')
                                 ->groupBy('orders.customer_id')
                                 ->where([
@@ -432,93 +387,6 @@ class TransactionController extends Controller
         } else {
             $transaction = $transaction->where('orders.branch_id', $branch)->paginate(10)->withQueryString();
         }
-
-        // if($filter == Null) {
-        //     $transaction = $transaction->where('orders.date', now()->today()->format('Y-m-d'))->get();
-
-        //     $date = now()->today()->format('d M Y');
-        // }
-
-        // if($filter == 'Hari Ini') {
-        //     $transaction = $transaction->where('orders.date', now()->today()->format('Y-m-d'))->get();
-
-        //     $date = now()->today()->format('d M Y');
-        // }
-
-        // if($filter == 'Minggu Ini') {
-        //     $startOfWeek = now()->startOfWeek()->format('Y-m-d');
-        //     $endOfWeek   = now()->endOfWeek()->format('Y-m-d');
-        //     $transaction = $transaction->whereBetween('orders.date', [$startOfWeek, $endOfWeek])->get();
-
-        //     $startWeek = now()->startOfWeek()->format('d M Y');
-        //     $endWeek   = now()->endOfWeek()->format('d M Y');
-        //     $date      = $startWeek.' sampai '.$endWeek;
-        // }
-
-        // if($filter == 'Bulan Ini') {
-        //     $startOfMonth = now()->startOfMonth()->format('Y-m-d');
-        //     $endOfMonth   = now()->endOfMonth()->format('Y-m-d');
-        //     $transaction  = $transaction->whereBetween('orders.date', [$startOfMonth, $endOfMonth])->get();
-
-        //     $startMonth = now()->startOfMonth()->format('d M Y');
-        //     $endMonth   = now()->endOfMonth()->format('d M Y');
-        //     $date       = $startMonth.' sampai '.$endMonth;
-        // }
-
-        // if($filter == 'Hari Kemarin') {
-        //     $transaction = $transaction->where('orders.date', now()->yesterday()->format('Y-m-d'))->get();
-
-        //     $date = now()->yesterday()->format('d M Y');
-        // }
-
-        // if($filter == 'Minggu Kemarin') {
-        //     $startOfWeek = now()->subWeek()->startOfWeek()->format('Y-m-d');
-        //     $endOfWeek   = now()->subWeek()->endOfWeek()->format('Y-m-d');
-        //     $transaction = $transaction->whereBetween('orders.date', [$startOfWeek, $endOfWeek])->get();
-
-        //     $startWeek = now()->subWeek()->startOfWeek()->format('d M Y');
-        //     $endWeek   = now()->subWeek()->endOfWeek()->format('d M Y');
-        //     $date      = $startWeek.' sampai '.$endWeek;
-        // }
-
-        // if($filter == 'Bulan Kemarin') {
-        //     $startOfMonth = now()->subMonth()->startOfMonth()->format('Y-m-d');
-        //     $endOfMonth   = now()->subMonth()->endOfMonth()->format('Y-m-d');
-        //     $transaction  = $transaction->whereBetween('orders.date', [$startOfMonth, $endOfMonth])->get();
-
-
-        //     $startMonth = now()->subMonth()->startOfMonth()->format('d M Y');
-        //     $endMonth   = now()->subMonth()->endOfMonth()->format('d M Y');
-        //     $date       = $startMonth.' sampai '.$endMonth;
-        // }
-
-        // if($filter == 'Hari Ini' || $filter == Null) {
-        //     $transaction = $transaction->where('orders.date', now()->today()->format('Y-m-d'))->paginate(10)->withQueryString();
-        //     $date = 'Tanggal '.now()->today()->format('d M Y');
-        // }
-
-        // if($filter == 'Tanggal') {
-        //     $transaction = $transaction->where('orders.date', $date_selected)->paginate(10)->withQueryString();
-        //     $date = 'Tanggal '.now()->today()->format('d M Y');
-        // }
-
-        // if($filter == 'Bulan') {
-        //     $transaction = $transaction->where(DB::raw('substr(orders.date,1,7)'), $month_selected)->paginate(10)->withQueryString();
-        //     $date = 'Bulan '.$month_selected;
-        // }
-
-        // if($filter == 'Tahun') {
-        //     $transaction = $transaction->where(DB::raw('substr(orders.date,1,4)'), $year_selected)->paginate(10)->withQueryString();
-        //     $date = 'Tahun '.$year_selected;
-        // }
-
-        // if($filter == 'custom') {
-        //     $transaction = $transaction->whereBetween('orders.date', [$date_start, $date_end])->get();
-
-        //     $startDate = Carbon::parse($request->date_start)->format('d M Y');
-        //     $endDate   = Carbon::parse($request->date_end)->format('d M Y');
-        //     $date      = $startDate.' sampai '.$endDate;
-        // }
 
         return view('pages.transaction.credit', compact('branches','transaction'));
     }
@@ -545,6 +413,7 @@ class TransactionController extends Controller
                                 ['orders.customer_id',$id],
                                 ['orders.status','print']
                             ])
+                            ->orderBy('orders.updated_at')
                             ->get();
         
         return view('pages.transaction.detail_credit', compact('details'));
@@ -578,17 +447,11 @@ class TransactionController extends Controller
         }
         $credit->save();
 
-        if($credit->status == 'Lunas') {
-            $order = Order::find($credit->order_id);
-            $order->payment_method = 'cash';
-            $order->save();
-        }
-
         return redirect()->back()->with('success', 'Data berhasil disimpan');
     }
 
     public function detailPaymentCredit($id) {
-        $details = Credit_detail::where('credit_id', $id)->get();
+        $details = Credit_detail::where('credit_id', $id)->orderBy('created_at')->get();
         $order_detail = Order_detail::where('order_id', $details[0]->credit->order_id)->get();
 
         return view('pages.transaction.detail_payment_credit', compact('details','order_detail'));

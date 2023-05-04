@@ -275,7 +275,7 @@ class StockController extends Controller
             $catalog  = Stock::get();
             $branches = Branch::get();
             $products = Product::orderBy('code')->get();
-            $stocks   = Stock::select('stocks.id', 'products.code', 'products.name')
+            $stocks   = Stock::select('stocks.id', 'products.code', 'products.name', 'products.unit')
                                 ->join('products', 'stocks.product_id', '=', 'products.id')
                                 ->orderBy('products.code')
                                 ->get();
@@ -297,7 +297,7 @@ class StockController extends Controller
             $catalog  = Stock::where('branch_id', $user_branch_id)->get();
             $branches = Branch::where('id', $user_branch_id)->get();
             $products = Product::orderBy('code')->get();
-            $stocks   = Stock::select('stocks.id', 'products.code', 'products.name')
+            $stocks   = Stock::select('stocks.id', 'products.code', 'products.name', 'products.unit')
                                 ->join('products', 'stocks.product_id', '=', 'products.id')
                                 ->orderBy('products.code')
                                 ->where('branch_id', $user_branch_id)
@@ -638,5 +638,15 @@ class StockController extends Controller
         return response()->json([
             'filename' => $base64TxtDto
         ]);
+    }
+
+
+
+
+    // Get Unit
+    public function getUnit(Request $request){
+        $product   = Stock::select('product_id')->where('id',$request->id)->first();
+        $unit = Product::select('unit')->where('id', $product->product_id)->first();
+        return json_encode($unit);
     }
 }

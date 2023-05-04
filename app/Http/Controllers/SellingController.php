@@ -69,7 +69,7 @@ class SellingController extends Controller
     public function addOrderInfo(Request $request) {
         if(empty($request->customer_id)) {
             return response()->json([
-                'success' => false,
+                'success'   => false,
                 'errorList' => [
                     'customer_id' => 'Tidak boleh kosong.'
                 ]
@@ -78,9 +78,9 @@ class SellingController extends Controller
 
         $check = Customer::find($request->customer_id);
         if(isset($check)) {
-            $branch_id = Auth::user()->branch_id;
-            $user_id = Auth::user()->id;
-            $now = Carbon::now()->format('Y-m');
+            $branch_id  = Auth::user()->branch_id;
+            $user_id    = Auth::user()->id;
+            $now        = Carbon::now()->format('Y-m');
             $getInvoice = DB::table('orders')
                         ->select(DB::raw('max(invoice) as maxInv'))
                         ->where([
@@ -90,7 +90,7 @@ class SellingController extends Controller
                         ])
                         ->first();
             $lastInv = $getInvoice->maxInv;
-            $no = (int) substr($lastInv,8,3);
+            $no      = (int) substr($lastInv,8,3);
             $no++;
             $invoice = 'FJ'.date('y').'-'.date('m').'-'.sprintf('%03s', $no);
             $order   = Order::create([
@@ -105,7 +105,7 @@ class SellingController extends Controller
             ]);
         } else {
             return response()->json([
-                'success' => false,
+                'success'   => false,
                 'errorList' => [
                     'customer_id' => 'Customer tidak ada di database.'
                 ]
@@ -116,51 +116,52 @@ class SellingController extends Controller
     public function addOrderList(Request $request, $id) {
         if(empty($request->product_id)) {
             return response()->json([
-                'success' => false,
-                'errorList' => [
-                    'product' => 'Tidak boleh kosong.'
-                ]
+                'success'   => false,
+                'errorList' => ['product' => 'Tidak boleh kosong.']
             ]);
         }
 
         $countOD = Order_detail::where("order_id",$id)->count();
         if($countOD < 10){
-            $branch_id  = Auth::user()->branch_id;
-            $customer_id = $request->customer_id;
-            $product_id = $request->product_id;
-            $qty        = $request->qty;
+            $branch_id      = Auth::user()->branch_id;
+            $customer_id    = $request->customer_id;
+            $product_id     = $request->product_id;
+            $qty            = $request->qty;
             $checkPricelist = Pricelist::where([
                                             ['product_id', $product_id],
                                             ['customer_id', $customer_id],
                                             ['branch_id', $branch_id]
                                         ])->first();
             if(empty($checkPricelist)) {
-                $product    = Pricelist::select('price')
+                $product = Pricelist::select('price')
                                         ->where([
                                             ['product_id', $product_id],
                                             ['branch_id', $branch_id],
                                             ['customer_id', Null]
                                         ])->first();
+
                 if(empty($product)) {
                     return response()->json([
-                        'success' => false,
-                        'errorList' => [
-                            'pricelist' => 'Produk belum ditentukan harganya di Daftar Harga.'
-                        ]
+                        'success'   => false,
+                        'errorList' => ['pricelist' => 'Produk belum ditentukan harganya di Daftar Harga.']
                     ]);
                 }
+
+                $price = $product->price;
+                $total = $price * $qty;
             } else {
-                $product    = Pricelist::select('price')
+                $product = Pricelist::select('price')
                                         ->where([
                                             ['product_id', $product_id],
                                             ['branch_id', $branch_id],
                                             ['customer_id', $customer_id]
                                         ])->first();
-            }
-            $price      = $product->price;
-            $total      = $price * $qty;
 
-            $stock      = DB::table('stocks')
+                $price = $product->price;
+                $total = $price * $qty;
+            }
+
+            $stock = DB::table('stocks')
                             ->select('stocks.qty as qty', 'products.name as name', 'products.unit as unit')
                             ->join('products', 'stocks.product_id', '=', 'products.id')
                             ->where([
@@ -169,7 +170,7 @@ class SellingController extends Controller
                             ])
                             ->first();
             
-            $cek        = Order_detail::where([
+            $cek   = Order_detail::where([
                                 ['order_id', $id],
                                 ['product_id', $request->product_id]
                             ])->get();
@@ -214,9 +215,7 @@ class SellingController extends Controller
         } else{
             return response()->json([
                 'success'   => false,
-                'errorList' => [
-                    'count' => 'Jumlah item maksimal 10'
-                ]
+                'errorList' => ['count' => 'Jumlah item maksimal 10']
             ]);
         }
         
@@ -243,11 +242,12 @@ class SellingController extends Controller
                 'errorList' => ['qty' => 'Tidak boleh kosong.']
             ]);
         }
-        $price = Pricelist::select('price')->where('product_id', $request->product_id)->first();
-        $total = ($price->price * $request->qty);
-        $afterDisc = $total - (($total * $request->disc) / 100);
+        // $price = Pricelist::select('price')->where('product_id', $request->product_id)->first();
+        
 
         $order_detail = Order_detail::find($request->id);
+        $total = ($order_detail->price * $request->qty);
+        $afterDisc = $total - (($total * $request->disc) / 100);
         $order_detail->qty   = $request->qty;
         $order_detail->disc  = $request->disc;
         $order_detail->total = $afterDisc;
@@ -311,11 +311,23 @@ class SellingController extends Controller
             ['id', $id],
             ['status', 'print']
         ])->get();
-        $subtotal       = $request->subtotal;
-        $disc           = $request->disc;
-        $ppn            = $request->ppn;
+        // $order_detail   = Order_detail::where('order_id', $id)->get();
+        // $subtotal       = $order_detail->sum('total');
+        // $disc           = $order_detail->sum('disc');
+        // $ppn            = $order_detail->sum('ppn');
+        $order_detail   = Order_detail::select(
+            DB::raw('sum(total) as total_total'),
+            DB::raw('sum(ppn) as total_ppn'),
+            DB::raw('sum(disc) as total_disc')
+        )
+        ->groupBy('order_id')
+        ->where('order_id', $id)
+        ->first();
+        $subtotal       = $order_detail->total_total;
+        $disc           = $order_detail->total_disc;
+        $ppn            = $order_detail->total_ppn;
         $delivery       = $request->delivery;
-        $grandtotal     = $request->grandtotal;
+        $grandtotal     = $subtotal + $delivery;
         $payment        = $request->payment;
         $payment_method = $request->payment_method;
         $user_id        = Auth::user()->id;
@@ -331,7 +343,7 @@ class SellingController extends Controller
 
             if( $validate->fails() ) {
                 return response()->json([
-                    'success' => false,
+                    'success'   => false,
                     'errorList' => [
                         'payment_method' => 'Metode Pembayaran belum dipilih.'
                     ]

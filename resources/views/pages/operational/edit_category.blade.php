@@ -1,4 +1,4 @@
-<div class="modal-dialog modal-sm">
+<div class="modal-dialog">
     <div class="modal-content">
         <div class="modal-header">
             <h4 class="modal-title">Ubah Data Kategori</h4>
@@ -15,7 +15,18 @@
                                 <label>Nama</label>
                                 <input type="text" name="name" value="{{ $category->name }}" class="form-control" required>
                             </div>
+                            <div class="form-group">
+                                <label>Keterangan</label>
+                                <br>
+                                <span class="text-secondary">
+                                    *Ketikkan keterangan dengan menggunakan titik dua ( : ) sebagai pemisah antar keterangan.
+                                    Misalnya : Membeli pena: Membeli penghapus.
+                                </span>
+                                <br><br>
+                                <textarea name="keterangan" id="keterangan" cols="30" rows="10" class="form-control">{{ $category->keterangan }}</textarea>
+                            </div>
                         </div>
+                        
                     </div>
                 </div>
             <div class="modal-footer">

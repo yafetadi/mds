@@ -49,7 +49,7 @@
                     <div class="col-lg-6">
                         <div class="form-group">
                             <label>Salesman</label>
-                            <select class="select2bs4" name="user_id">
+                            <select class="select2bs4" name="salesman_id">
                                 @foreach($salesmen as $salesman)
                                     <option value="{{ $salesman->id }}" {{ $customer->salesman_id == $salesman->id ? 'selected' : '' }}>{{ $salesman->name }} - {{ $salesman->branch->name }} - {{ $salesman->area->name }}</option>
                                 @endforeach

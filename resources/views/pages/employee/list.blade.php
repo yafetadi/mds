@@ -20,7 +20,7 @@
                 <div class="card card-primary card-outline">
                     <div class="card-header">
                         Data Admin & Gudang
-                        <button class="btn btn-sm btn-primary float-sm-right" data-toggle="modal" data-target="#modal-input-admin"><i class="nav-icon fas fa-plus"></i> Admin/Gudang</button>
+                        <button class="btn btn-sm btn-primary float-sm-right" data-toggle="modal" data-target="#modal-input-admin"><i class="nav-icon fas fa-plus"></i> Karyawan</button>
                     </div>
                     <div class="card-body">
                         <table id="example2" class="table table-bordered table-striped">

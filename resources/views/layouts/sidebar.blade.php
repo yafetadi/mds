@@ -29,7 +29,19 @@
                 </p>
             </a>
         </li>
+        @endcanany
         <li class="nav-header">TRANSAKSI</li>
+        @canany(['isManager','isAdmin'])
+        <li class="nav-item">
+            <a href="{{ route('selling') }}" class="nav-link">
+                <i class="nav-icon fas fa-calculator text-green"></i>
+                <p>
+                Penjualan
+                </p>
+            </a>
+        </li>
+        @endcanany
+        @canany(['isOwner','isManager','isAdmin'])
         <li class="nav-item">
             <a href="{{ route('transaction.history') }}" class="nav-link">
                 <i class="nav-icon fas fa-book text-blue"></i>
@@ -38,6 +50,8 @@
                 </p>
             </a>
         </li>
+        @endcanany
+        @canany(['isOwner','isManager','isAdmin','isFinance'])
         <li class="nav-item">
             <a href="{{route('transaction.credit') }}" class="nav-link">
                 <i class="nav-icon fas fa-book text-orange"></i>
@@ -46,6 +60,8 @@
                 </p>
             </a>
         </li>
+        @endcanany
+        @canany(['isOwner','isManager','isPurchase'])
         <li class="nav-item">
             <a href="{{ route('stock_in.list') }}" class="nav-link">
                 <i class="nav-icon fas fa-book text-purple"></i>
@@ -54,6 +70,8 @@
                 </p>
             </a>
         </li>
+        @endcanany
+        @canany(['isOwner','isManager','isPurchase'])
         <li class="nav-item">
             <a href="{{route('debt.list') }}" class="nav-link">
                 <i class="nav-icon fas fa-book text-orange"></i>
@@ -62,45 +80,14 @@
                 </p>
             </a>
         </li>
-
+        @endcanany
         <li class="nav-header">DATA MASTER</li>
+        @canany(['isOwner','isManager','isAdmin'])
         <li class="nav-item">
             <a href="{{ route('area.list') }}" class="nav-link">
                 <i class="nav-icon fas fa-landmark text-cyan"></i>
                 <p>
                 Area Sales
-                </p>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{{ route('operational.list') }}" class="nav-link">
-                <i class="nav-icon fas fa-shopping-bag text-pink"></i>
-                <p>
-                Operasional
-                </p>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{{ route('supplier.list') }}" class="nav-link">
-                <i class="nav-icon fas fa-users text-green"></i>
-                <p>
-                Supplier
-                </p>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{{ route('customer.list') }}" class="nav-link">
-                <i class="nav-icon fas fa-users text-green"></i>
-                <p>
-                Pelanggan
-                </p>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{{ route('employee.list') }}" class="nav-link">
-                <i class="nav-icon fas fa-users text-green"></i>
-                <p>
-                Karyawan
                 </p>
             </a>
         </li>
@@ -112,6 +99,38 @@
                 </p>
             </a>
         </li>
+        @endcanany
+        @canany(['isOwner','isManager','isPurchase'])
+        <li class="nav-item">
+            <a href="{{ route('supplier.list') }}" class="nav-link">
+                <i class="nav-icon fas fa-users text-green"></i>
+                <p>
+                Supplier
+                </p>
+            </a>
+        </li>
+        @endcanany
+        @canany(['isOwner','isManager','isAdmin'])
+        <li class="nav-item">
+            <a href="{{ route('customer.list') }}" class="nav-link">
+                <i class="nav-icon fas fa-users text-green"></i>
+                <p>
+                Pelanggan
+                </p>
+            </a>
+        </li>
+        @endcanany
+        @canany(['isOwner','isManager'])
+        <li class="nav-item">
+            <a href="{{ route('employee.list') }}" class="nav-link">
+                <i class="nav-icon fas fa-users text-green"></i>
+                <p>
+                Karyawan
+                </p>
+            </a>
+        </li>
+        @endcanany
+        @canany(['isOwner','isManager','isAdmin','isPurchase','isGudang'])
         <li class="nav-item">
             <a href="{{ route('product.list') }}" class="nav-link">
                 <i class="nav-icon fas fa-tags text-teal"></i>
@@ -120,6 +139,8 @@
                 </p>
             </a>
         </li>
+        @endcanany
+        @canany(['isOwner','isManager','isAdmin'])
         <li class="nav-item">
             <a href="{{ route('price.list') }}" class="nav-link">
                 <i class="nav-icon fas fa-tags text-teal"></i>
@@ -128,42 +149,48 @@
                 </p>
             </a>
         </li>
+        @endcanany
+        @canany(['isOwner','isManager','isAdmin','isPurchase','isGudang','isFinance'])
         <li class="nav-item">
-            <a href="#" class="nav-link">
-                <i class="nav-icon fas fas fa-table text-pink"></i>
+            <a href="{{ route('catalog.list') }}" class="nav-link">
+                <i class="nav-icon fas fa-book text-pink"></i>
                 <p>
-                    Stok
-                    <i class="right fas fa-angle-left"></i>
+                Katalog
                 </p>
             </a>
-            <ul class="nav nav-treeview">
-                <li class="nav-item">
-                    <a href="{{ route('catalog.list') }}" class="nav-link">
-                        <i class="far fa-circle nav-icon text-pink"></i>
-                        <p>
-                        Katalog
-                        </p>
-                    </a>
-                </li>
-                <!-- <li class="nav-item">
-                    <a href="{{ route('stock_in.list') }}" class="nav-link">
-                        <i class="far fa-circle nav-icon text-pink"></i>
-                        <p>
-                        Barang Masuk
-                        </p>
-                    </a>
-                </li> -->
-                <li class="nav-item">
-                    <a href="{{ route('stock_out.list') }}" class="nav-link">
-                        <i class="far fa-circle nav-icon text-pink"></i>
-                        <p>
-                        Barang Keluar
-                        </p>
-                    </a>
-                </li>
-            </ul>
         </li>
+        @endcanany
+        <!-- <li class="nav-item">
+            <a href="{{ route('stock_in.list') }}" class="nav-link">
+                <i class="far fa-circle nav-icon text-pink"></i>
+                <p>
+                Barang Masuk
+                </p>
+            </a>
+        </li> -->
+        @canany(['isOwner','isManager','isAdmin'])
+        <li class="nav-item">
+            <a href="{{ route('stock_out.list') }}" class="nav-link">
+                <i class="nav-icon fas fa-book text-pink"></i>
+                <p>
+                Barang Keluar
+                </p>
+            </a>
+        </li>
+        @endcanany
+
         <li class="nav-header">LAPORAN</li>
+        @canany(['isManager','isFinance'])
+        <li class="nav-item">
+            <a href="{{ route('operational.list') }}" class="nav-link">
+                <i class="nav-icon fas fa-shopping-bag text-pink"></i>
+                <p>
+                Operasional
+                </p>
+            </a>
+        </li>
+        @endcanany
+        @canany(['isOwner','isManager'])
         <li class="nav-item">
             <a href="{{ route('report.finance') }}" class="nav-link">
                 <i class="nav-icon fas fa-book text-blue"></i>
@@ -172,17 +199,17 @@
                 </p>
             </a>
         </li>
-        <li class="nav-item">
+        @endcanany
+        <!-- <li class="nav-item">
             <a href="{{ route('report.stock') }}" class="nav-link">
                 <i class="nav-icon fas fa-book text-blue"></i>
                 <p>
                 Barang
                 </p>
             </a>
-        </li>
-        @endcanany
+        </li> -->
 
-        @can('isAdmin')
+        <!-- @can('isAdmin')
         <li class="nav-header">TRANSAKSI</li>
         <li class="nav-item">
             <a href="{{ route('selling') }}" class="nav-link">
@@ -276,14 +303,6 @@
                         </p>
                     </a>
                 </li>
-                <!-- <li class="nav-item">
-                    <a href="{{ route('stock_in.list') }}" class="nav-link">
-                        <i class="far fa-circle nav-icon text-pink"></i>
-                        <p>
-                        Barang Masuk
-                        </p>
-                    </a>
-                </li> -->
                 <li class="nav-item">
                     <a href="{{ route('stock_out.list') }}" class="nav-link">
                         <i class="far fa-circle nav-icon text-pink"></i>
@@ -338,7 +357,7 @@
                 </p>
             </a>
         </li>
-        @endcan
+        @endcan -->
     </ul>
     </nav>
     <!-- /.sidebar-menu -->

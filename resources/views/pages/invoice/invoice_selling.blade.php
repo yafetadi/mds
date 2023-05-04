@@ -168,7 +168,7 @@
             @endif  
             <tr>
                 <td colspan="2" style="border: 1px solid;">Diskon</td>
-                <td style="border: 1px solid;">{{ $print[0]->disc}} %</td>
+                <td style="border: 1px solid;">{{ $print[0]->total_disc}} %</td>
             </tr>
             <tr>
                 <td colspan="2" style="border: 1px solid;">Biaya Pengiriman</td>

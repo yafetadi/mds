@@ -37,7 +37,18 @@
                             </select>
                         </div>
                     </div>
-                    
+                    <div class="col-md-4">
+                        <label>Pelanggan</label>
+                        <div class="input-group mb-3">
+                            <input type="search" class="form-control" name="keyword" value="{{ request('keyword') }}" placeholder="Cari pelanggan ...">
+                            <span class="input-group-append">
+                                <button type="submit" class="btn btn-info"><i class="fas fa-search"></i></button>
+                                <a class="btn btn-default" href="{{ route('transaction.credit') }}"><i class="fas fa-undo"></i></a>
+                            </span>
+                            </div>
+                            
+                        </div>
+                    </div>
                 </div>
             </form>
         </div>
@@ -46,43 +57,49 @@
     <!-- /.card -->
 
     <div class="container-fluid">
-    <div class="row">
-        <div class="col-lg-12">
-        <div class="card card-primary card-outline">
-            <div class="card-body">
-            <table id="example4" class="table table-bordered table-striped">
-                  <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Pembeli</th>
-                    <th>Jumlah Kredit</th>
-                    <th>Total Kekurangan</th>
-                    <th>Cabang</th>
-                    <th><i class="fa fa-cog"></i></th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <?php $no=0 ?>
-                  @forelse($transaction as $a)
-                  <tr>
-                    <td>{{ ++$no }}</td>
-                    <td>{{ $a->customer_company }}</td>
-                    <td>{{ $a->total_credit_transaction }} faktur</span></td>
-                    <td>Rp. <span class="uang">{{ $a->total_remaining }}</span></td>
-                    <td>{{ $a->branch }}</td>
-                    <td><button class="btn btn-info btn-sm" onclick="detail('{{ $a->customer_id }}')"><i class="fa fa-search"></i></button></td>
-                  </tr>
-                  @empty
-                  <tr>
-                    <td colspan="6"><center>Tidak ada data!</center></td>
-                  </tr>
-                  @endforelse
-                  </tbody>
-                </table>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card card-primary card-outline">
+                    <div class="card-body">
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Pembeli</th>
+                                <th>Jumlah Kredit</th>
+                                <th>Total Kekurangan</th>
+                                <th>Cabang</th>
+                                <th><i class="fa fa-cog"></i></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @php
+                            $no = ($transaction->currentPage() - 1) * $transaction->perPage() + 1;
+                            @endphp
+                            @forelse($transaction as $a)
+                            <tr>
+                                <td>{{ $no++ }}</td>
+                                <td>{{ $a->customer_company }}</td>
+                                <td>{{ $a->total_credit_transaction }} faktur</span></td>
+                                <td>Rp. <span class="uang">{{ $a->total_remaining }}</span></td>
+                                <td>{{ $a->branch }}</td>
+                                <td><button class="btn btn-info btn-sm" onclick="detail('{{ $a->customer_id }}')"><i class="fa fa-search"></i></button></td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="6"><center>Tidak ada data!</center></td>
+                            </tr>
+                            @endforelse
+                            </tbody>
+                        </table>
+                        <br>
+                        <div class="d-flex justify-content-center">
+                            {{ $transaction->links() }}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        </div>
-    </div>
     </div>
 </div>
 <!-- /.content -->

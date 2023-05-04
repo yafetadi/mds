@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Carbon\Carbon;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
@@ -27,10 +28,21 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        config(['app.locale' => 'id']);
+	    Carbon::setLocale('id');
+
         Schema::defaultStringLength(191);
 
         Gate::define('isGudang', function($user) {
             return $user->role == 'Gudang';
+        });
+
+        Gate::define('isPurchase', function($user) {
+            return $user->role == 'Purchase';
+        });
+
+        Gate::define('isFinance', function($user) {
+            return $user->role == 'Finance';
         });
 
         Gate::define('isAdmin', function($user) {

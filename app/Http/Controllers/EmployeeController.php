@@ -8,6 +8,7 @@ use App\Models\Credit;
 use App\Models\Order;
 use App\Models\Customer;
 use App\Models\Order_detail;
+use App\Models\Product;
 use App\Models\Salesman;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -23,7 +24,7 @@ class EmployeeController extends Controller
     public function changePassword(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'password' => ['required', 'confirmed'],
             'password_confirmation' => 'required_with:password|same:password'
         ]);
 
@@ -44,9 +45,13 @@ class EmployeeController extends Controller
         $branches = Branch::get();
         $areas    = Area::get();
         $roles    = array(
-            'Manager' => 'Manager',
+            'Manager' => 'Supervisor',
             'Admin' => 'Admin',
-            'Gudang' => 'Gudang'
+            'Finance' => 'Finance',
+            'Purchase' => 'Purchase',
+            'Gudang' => 'Gudang',
+            'Driver' => 'Driver',
+            'Cleaning Service' => 'Cleaning Service'
         );
 
         return view('pages.employee.list', compact('employee', 'branches', 'areas', 'roles','salesmen'));
@@ -154,7 +159,9 @@ class EmployeeController extends Controller
             "11" => "November",
             "12" => "Desember"
         );
+        $products = Product::orderBy('code')->get();
         $filter     = $request->filter;
+        $product_selected = $request->product;
         $date_selected = $request->date_selected;
         $month_selected = date('Y').'-'.$request->month_selected;
         $year_selected = $request->year_selected;
@@ -165,10 +172,15 @@ class EmployeeController extends Controller
                         ->select(
                             'customers.id',
                             'customers.company',
-                            DB::raw('count(orders.id) as count'),
+                            DB::raw('sum(order_details.qty) as count'),
                             DB::raw('sum(orders.grandtotal) as total')
                         )
                         ->join('customers','orders.customer_id','=','customers.id')
+                        ->join('order_details','orders.id','=','order_details.order_id')
+                        ->join('products','order_details.product_id','=','products.id')
+                        ->when($product_selected, function ($query) use ($product_selected) {
+                            $query->where('products.id', $product_selected);
+                        })
                         ->where([
                             ['orders.salesman_id', $id],
                             ['orders.status' ,'print']
@@ -183,14 +195,14 @@ class EmployeeController extends Controller
                     
         $credits   = DB::table('credits')
                         ->select(
-                            DB::raw('sum(credits.remaining) as total_remaining')
+                            'credits.nominal',
+                            'credits.remaining'
                         )
                         ->join('orders','credits.order_id','=','orders.id')
                         ->where([
                             ['orders.salesman_id', $id],
                             ['credits.status','Belum Lunas']
-                        ])
-                        ->groupBy('orders.salesman_id');
+                        ]);
 
         if($filter == 'Hari Ini' || $filter == Null) {
             $customers = $customers->where('orders.date', now()->today()->format('Y-m-d'))->get();
@@ -229,13 +241,14 @@ class EmployeeController extends Controller
             $date      = $startDate.' sampai '.$endDate;
         }
 
-        $total_order = $orders->count();
+        $total_order      = $orders->count();
         $total_grandtotal = $orders->sum('grandtotal');
-        $total_remaining = $credits->sum('total_remaining');
-        $all_grandtotal = Order::where('status','print')->sum('grandtotal');
-        $percentage  = ($total_grandtotal > 0) ? ($total_grandtotal / $all_grandtotal) * 100 : 0;
+        $total_remaining  = $credits->sum('remaining');
+        $total_paid       = $credits->sum('nominal') - $credits->sum('remaining') + $orders->where('payment_method','cash')->sum('grandtotal');
+        $all_grandtotal   = Order::where('status','print')->sum('grandtotal');
+        $percentage       = ($total_grandtotal > 0) ? ($total_grandtotal / $all_grandtotal) * 100 : 0;
         
-        return view('pages.employee.detail_salesman', compact('date','months','salesman','customers','total_order','total_grandtotal','total_remaining','percentage'));
+        return view('pages.employee.detail_salesman', compact('date','products','months','salesman','customers','total_order','total_grandtotal','total_remaining','percentage','total_paid'));
     }
 
     public function getSalesmanDetail($id) {

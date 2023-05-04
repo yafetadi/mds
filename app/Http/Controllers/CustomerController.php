@@ -82,7 +82,7 @@ class CustomerController extends Controller
         $customer->city    = $request->city;
         $customer->phone   = $request->phone;
         $customer->tenor   = $request->tenor;
-        $customer->user_id = $request->user_id;
+        $customer->salesman_id = $request->salesman_id;
         $customer->save();
 
         return redirect()->back()->with('success', 'Data berhasil diubah.');
@@ -167,12 +167,11 @@ class CustomerController extends Controller
     public function edit($id) {
         $user_branch_id = Auth::user()->branch_id;
         $customer = Customer::find($id);
-        $salesmen = Salesman::get();
 
         if(Auth::user()->role == 'Owner') {
-            $salesmen = $salesmen->get();
+            $salesmen = Salesman::get();
         } else {
-            $salesmen = $salesmen->where('branch_id', $user_branch_id)->get();
+            $salesmen = Salesman::where('branch_id', $user_branch_id)->get();
         }
         
         return view('pages.customer.edit', compact('customer','salesmen'));

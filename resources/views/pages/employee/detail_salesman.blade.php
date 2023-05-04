@@ -52,6 +52,10 @@
                                 <td style="font-style: italic;" colspan="2">Rp. {{ strrev(implode('.',str_split(strrev(strval( $total_remaining )),3))) }}</td>
                             </tr>
                             <tr>
+                                <td style="background-color: whitesmoke; font-weight: bold;" colspan="2">Total Nominal Lunas</td>
+                                <td style="font-style: italic;" colspan="2">Rp. {{ strrev(implode('.',str_split(strrev(strval( $total_paid )),3))) }}</td>
+                            </tr>
+                            <tr>
                                 <td style="background-color: whitesmoke; font-weight: bold;" colspan="2">Persentase Penjualan</td>
                                 <td style="font-style: italic;" colspan="2">{{ round($percentage, 2) }} %</td>
                             </tr>
@@ -59,74 +63,85 @@
 
                         <form method="GET" action="{{ url()->current() }}">
                             <div class="row">
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <div class="form-group">
                                         <label>Tanggal</label>
                                         <select class="form-control" name="filter" id="filter">
-                                            <option disabled selected>== Pilih Tanggal ==</option>
-                                            <option value="Hari Ini">Hari Ini</option>
-                                            <option value="Tanggal">Tanggal</option>
-                                            <option value="Bulan">Bulan</option>
-                                            <option value="Tahun">Tahun</option>
-                                            <option value="custom">Lainnya</option>
+                                            <option disabled {{ request('filter') == null ? 'selected' : '' }}>== Pilih Tanggal ==</option>
+                                            <option value="Hari Ini" {{ request('filter') == 'Hari Ini' ? 'selected' : '' }}>Hari Ini</option>
+                                            <option value="Tanggal" {{ request('filter') == 'Tanggal' ? 'selected' : '' }}>Tanggal</option>
+                                            <option value="Bulan" {{ request('filter') == 'Bulan' ? 'selected' : '' }}>Bulan</option>
+                                            <option value="Tahun" {{ request('filter') == 'Tahun' ? 'selected' : '' }}>Tahun</option>
+                                            <option value="custom" {{ request('filter') == 'custom' ? 'selected' : '' }}>Lainnya</option>
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-md-3" id="date_choice">
+                                <div class="col-md-2" id="date_choice">
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
                                                 <label>Tanggal</label>
-                                                <input type="date" id="date_selected" name="date_selected" class="form-control">
+                                                <input type="date" id="date_selected" name="date_selected" class="form-control" value="{{ request('date_selected') == null ? '' : request('date_selected') }}">
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-3" id="month_choice">
+                                <div class="col-md-2" id="month_choice">
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
                                                 <label>Bulan</label>
                                                 <select id="month_selected" name="month_selected" class="form-control">
-                                                    <option disabled selected>== Pilih Bulan ==</option>
+                                                    <option disabled {{ request('month_selected') == null ? 'selected' : '' }}>== Pilih Bulan ==</option>
                                                     @foreach($months as $no => $month)
-                                                    <option value="{{ $no }}">{{ $month }}</option>
+                                                    <option value="{{ $no }}" {{ request('month_selected') == $no ? 'selected' : '' }}>{{ $month }}</option>
                                                     @endforeach
                                                 </select>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-3" id="year_choice">
+                                <div class="col-md-2" id="year_choice">
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
                                                 <label>Tahun</label>
                                                 <select id="year_selected" name="year_selected" class="form-control">
-                                                    <option disabled selected>== Pilih Tahun ==</option>
+                                                    <option disabled {{ request('year_selected') == null ? 'selected' : '' }}>== Pilih Tahun ==</option>
                                                     {{ $now = date('Y'); }}
                                                     @for($year = 2023; $year <= $now; $year++)
-                                                    <option value="{{ $year }}">{{ $year }}</option>
+                                                    <option value="{{ $year }}" {{ request('year_selected') == $year ? 'selected' : '' }}>{{ $year }}</option>
                                                     @endfor
                                                 </select>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6" id="date_range">
+                                <div class="col-md-4" id="date_range">
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Dari Tanggal</label>
-                                                <input type="date" id="date_start" name="date_start" class="form-control">
+                                                <input type="date" id="date_start" name="date_start" class="form-control" value="{{ request('date_start') == null ? '' : request('date_start') }}">
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Sampai Tanggal</label>
-                                                <input type="date" id="date_end" name="date_end" class="form-control">
+                                                <input type="date" id="date_end" name="date_end" class="form-control" value="{{ request('date_end') == null ? '' : request('date_end') }}">
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Produk</label>
+                                        <select class="form-control select2bs4" name="product">
+                                            <option disabled {{ request('product') == null ? 'selected' : '' }}>== Pilih Produk ==</option>
+                                            @foreach($products as $product)
+                                            <option value="{{ $product->id }}" {{ request('product') == $product->id ? 'selected' : '' }}>{{ $product->code }} - {{ $product->name }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
                                 </div>
                                 <div class="col-md-1">
@@ -144,7 +159,7 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <label>Daftar Transaksi Pelanggan:</label>
-                                <span>@if(request()->get('filter') != 'custom') {{ request()->get('filter') }} ({{ $date }}) @elseif (request()->get('filter') == 'custom') ({{ $date }}) @endif </span>
+                                <span>@if(request()->get('filter') != 'custom') {{ request()->get('filter') }} {{ $date }} @elseif (request()->get('filter') == 'custom') {{ $date }} @endif</span>
                             </div>
                         </div>
 
@@ -159,8 +174,12 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php $no = 0 ?>
-                                @forelse($customers as $customer)
+                                @php
+                                $no = 0;
+                                $total = 0;
+                                @endphp
+                                @if(isset($customers))
+                                @foreach($customers as $customer)
                                 <tr>
                                     <td>{{ ++$no }}</td>
                                     <td>{{ $customer->company }}</td>
@@ -168,11 +187,17 @@
                                     <td>Rp. {{ strrev(implode('.',str_split(strrev(strval( $customer->total )),3))) }}</td>
                                     <td><button class="btn btn-sm btn-info" onclick="getDetail('{{ $customer->id }}')"><i class="fa fa-search"></i></button></td>
                                 </tr>
-                                @empty
+                                @php $total += $customer->count; @endphp
+                                @endforeach
+                                <tr style="background-color: lightblue; font-weight:bold;">
+                                    <td colspan="2">Total Kuantitas Produk Terjual</td>
+                                    <td colspan="3">{{ $total }}</td>
+                                </tr>
+                                @else
                                 <tr>
                                     <td colspan="5"><center>Tidak ada data</center></td>
                                 </tr>
-                                @endforelse
+                                @endif
                             </tbody>
                         </table>
                     </div>
@@ -201,10 +226,34 @@
     }
 
     $(document).ready(function() {
-        $('#date_range').hide();
-        $('#date_choice').hide();
-        $('#month_choice').hide();
-        $('#year_choice').hide();
+        if($('#filter').val() == 'custom') {
+                $('#date_range').show();
+            } else {
+                $('#date_range').hide();
+                $('#date_start').val() == null;
+                $('#date_end').val() == null;
+            }
+
+            if($('#filter').val() == 'Tanggal') {
+                $('#date_choice').show();
+            } else {
+                $('#date_choice').hide();
+                $('#date_selected').val() == null;
+            }
+
+            if($('#filter').val() == 'Bulan') {
+                $('#month_choice').show();
+            } else {
+                $('#month_choice').hide();
+                $('#month_selected').val() == null;
+            }
+
+            if($('#filter').val() == 'Tahun') {
+                $('#year_choice').show();
+            } else {
+                $('#year_choice').hide();
+                $('#year_selected').val() == null;
+            }
 
         $('#filter').change(function () {
             if($('#filter').val() == 'custom') {

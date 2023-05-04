@@ -11,7 +11,7 @@ class Operational_category extends Model
 {
     use HasFactory, Uuid, SoftDeletes;
 
-    protected $fillable = ['name','user_id'];
+    protected $fillable = ['name', 'keterangan', 'user_id'];
     protected $dates = ['deleted_at'];
 
     public function user() {

@@ -18,6 +18,14 @@ class HomeController extends Controller
             return redirect()->route('dashboard');
         }
 
+        if (Auth::user()->role == 'Finance') {
+            return redirect()->route('transaction.credit');
+        }
+
+        if (Auth::user()->role == 'Purchase') {
+            return redirect()->route('stock_in.list');
+        }
+
         if (Auth::user()->role == 'Admin') {
             return redirect()->route('selling');
         }
