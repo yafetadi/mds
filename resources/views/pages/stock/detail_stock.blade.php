@@ -58,10 +58,10 @@
                         <th>Kode</th>
                         <th>Nama Barang</th>
                         <th>Jumlah</th>
-                        @can('isAdmin')
+                        @canany(['isManager','isAdmin','isPurchase'])
                         <th>Harga</th>
                         <th>Kadaluarsa</th>
-                        @endcan
+                        @endcanany
                     </tr>
                 </thead>
                 <tbody>
@@ -72,10 +72,10 @@
                         <td>{{ $data->product_code }}</td>
                         <td>{{ $data->product_name }}</td>
                         <td>{{ $data->qty }}</td>
-                        @can('isAdmin')
-                        <td>Rp. {{ strrev(implode('.',str_split(strrev(strval( $data->price )),3))) }}</td>
+                        @canany(['isManager','isAdmin','isPurchase'])
+                        <td>Rp. {{ $data->price }}</td>
                         <td>{{ date('d-m-Y', strtotime($data->expired)) }}</td>
-                        @endcan
+                        @endcanany
                     </tr>
                     @endforeach
                 </tbody>

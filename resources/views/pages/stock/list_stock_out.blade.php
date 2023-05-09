@@ -327,6 +327,14 @@
                 </div>
             </div>
         `);
+
+        $('.select2bs4').select2({
+            theme: 'bootstrap4'
+        });
+
+        $(document).ready(function(){
+            $( '.uang' ).mask('000.000.000', {reverse: true});
+        }) 
     }
 
     function removeRow() {

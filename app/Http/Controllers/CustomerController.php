@@ -22,10 +22,9 @@ class CustomerController extends Controller
 {
     public function list(Request $request) {
         $user_branch_id = Auth::user()->branch_id;
-        $salesmen  = User::where('role', 'Salesman');
-
+        
         if(Auth::user()->role == 'Owner') {
-            $salesmen  = $salesmen->get();
+            $salesmen  = Salesman::get();
             $customers = Customer::select('customers.*','salesmen.name as salesman')
                 ->when($request->keyword, function ($query) use ($request) {
                     $query->where('company', 'like', "%{$request->keyword}%");
@@ -35,7 +34,7 @@ class CustomerController extends Controller
                 ->paginate(10)
                 ->withQueryString();
         } else {
-            $salesmen  = $salesmen->where('branch_id', $user_branch_id)->get();
+            $salesmen  = Salesman::where('branch_id', $user_branch_id)->get();
             $customers = Customer::select('customers.*','salesmen.name as salesman')
                 ->when($request->keyword, function ($query) use ($request) {
                     $query->where('customers.company', 'like', "%{$request->keyword}%");

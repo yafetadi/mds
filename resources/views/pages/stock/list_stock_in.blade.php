@@ -166,9 +166,9 @@
                                     <td>
                                         <div class="btn-group">
                                             <button class="btn btn-sm btn-info" onclick="detail('{{ $in->id }}')"><i class="fa fa-search"></i></button>
-                                            @can('isAdmin')
+                                            @canany(['isManager','isAdmin','isPurchase'])
                                             <button class="btn btn-sm btn-warning" onclick="edit('{{ $in->id }}')"><i class="fa fa-edit"></i></button>
-                                            @endcan
+                                            @endcanany
                                             <button class="btn btn-sm btn-danger" onclick="print('{{ $in->id }}')"><i class="fa fa-print"></i></button>
                                         </div>
                                     </td>
@@ -196,7 +196,7 @@
 
 <!-- Modal Input Stock-->
 <div class="modal fade" id="modal-input-stock" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
                 <h4 class="modal-title">Tambah Pembelian</h4>
@@ -204,15 +204,15 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="{{ route('stock_in.store') }}" method="POST">
+            <form action="{{ route('stock_in.store') }}" method="POST" id="barangMasuk">
                 @csrf
                 <div class="modal-body" id="product-container">
                     <div class="row">
-                        <div class="form-group col-md-6">
+                        <div class="form-group col-md-4">
                             <label>Tanggal</label>
                             <input class="form-control" type="date" name="date" required>
                         </div>
-                        <div class="form-group col-md-6">
+                        <div class="form-group col-md-4">
                             <label>Supplier</label>
                             <select class="form-control select2bs4" name="supplier_id">
                                 <option disabled>== Pilih Supplier ==</option>
@@ -221,29 +221,27 @@
                                 @endforeach
                             </select>
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="form-group col-md-6">
+                        <div class="form-group col-md-4">
                             <label>Keterangan</label>
                             <input class="form-control" type="text" name="desc" placeholder="Nomor Nota Pembelian/Keterangan lain" required>
                         </div>
-                        <div class="form-group col-md-6">
-                            <label>Subtotal</label>
-                            <input type="text" class="form-control uang" name="subtotal" value="0" required>
-                        </div>
                     </div>
                     <div class="row">
-                        <div class="form-group col-md-6">
+                        <div class="form-group col-md-4">
+                            <label>Subtotal</label>
+                            <input type="text" class="form-control uang" name="subtotal" id="subtotal" value="0" required>
+                        </div>
+                        <div class="form-group col-md-4">
                             <label>DP</label>
                             <input type="text" class="form-control uang" name="dp" value="0" required>
                         </div>
-                        <div class="form-group col-md-6">
+                        <div class="form-group col-md-4">
                             <label>Piutang</label>
                             <input type="text" class="form-control uang" name="remaining" value="0" required>
                         </div>
                     </div>
                     <div class="row">
-                        <div class="form-group col-md-4">
+                        <div class="form-group col-md-3">
                             <label>Product</label>
                             <select class="form-control select2bs4" name="addProduct[0][stock_id]" required>
                                 <option disabled>== Pilih Produk ==</option>
@@ -254,13 +252,17 @@
                         </div>
                         <div class="form-group col-md-2">
                             <label>Jumlah</label>
-                            <input type="number" class="form-control" name="addProduct[0][qty]" required>
+                            <input type="number" class="form-control" name="addProduct[0][qty]" id="qty" required>
                         </div>
                         <div class="form-group col-md-2">
                             <label>Harga</label>
-                            <input type="text" class="form-control uang" name="addProduct[0][price]">
+                            <input type="text" class="form-control" name="addProduct[0][price]" id="price">
                         </div>
-                        <div class="form-group col-md-3">
+                        <div class="form-group col-md-2">
+                            <label>Total</label>
+                            <input type="text" class="form-control" name="addProduct[0][total]" id="total" readonly>
+                        </div>
+                        <div class="form-group col-md-2">
                             <label>Kadaluarsa</label>
                             <input type="date" class="form-control" name="addProduct[0][expired]">
                         </div>
@@ -348,7 +350,7 @@
 
         $('#product-container').append(`
             <div class="row" id="remove">
-                <div class="form-group col-md-4">
+                <div class="form-group col-md-3">
                     <label>Product</label>
                     <select class="form-control select2bs4" name="addProduct[${p}][stock_id]" required>
                         <option disabled>== Pilih Produk ==</option>
@@ -357,13 +359,17 @@
                 </div>
                 <div class="form-group col-md-2">
                     <label>Jumlah</label>
-                    <input type="number" class="form-control" name="addProduct[${p}][qty]" required>
+                    <input type="number" class="form-control" name="addProduct[${p}][qty]" id="qty" required>
                 </div>
                 <div class="form-group col-md-2">
                     <label>Harga</label>
-                    <input type="text" class="form-control uang" name="addProduct[${p}][price]">
+                    <input type="text" class="form-control" name="addProduct[${p}][price]" id="price">
                 </div>
-                <div class="form-group col-md-3">
+                <div class="form-group col-md-2">
+                    <label>Total</label>
+                    <input type="text" class="form-control" name="addProduct[${p}][total]" id="total" readonly>
+                </div>
+                <div class="form-group col-md-2">
                             <label>Kadaluarsa</label>
                             <input type="date" class="form-control" name="addProduct[${p}][expired]">
                         </div>
@@ -390,6 +396,30 @@
     function removeRow() {
         $('#remove').remove();
     }
+
+    // function count() {
+    //     var qty = $('#qty').val();
+    //     var price = $('#price').val();
+    //     var total = qty * price;
+    //     var subtotal =+ total;
+        
+    //     $('#total').val(total);
+    //     $('#subtotal').val(subtotal);
+    // }
+
+    $('input[name*="price"], input[name*="qty"]').on('keyup', function(){
+        var qty = $('#qty').val();
+        var price = $('#price').val();
+        var subtotal = $('#subtotal').val();
+        var total = qty * price;
+        var subtotal = total + subtotal;
+        
+        $('#total').val(total);
+        $('#subtotal').val(subtotal);
+    });
+
+    
+
 
     function detail(id) {
         $.get("{{ url('/stock/detail') }}/" + id, {}, function(data, status) {

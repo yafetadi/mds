@@ -79,7 +79,7 @@
                     @forelse($details as $data)
                     <tr>
                         <td>{{ ++$no }}</td>
-                        <td>{{ date('d-m-Y', strtotime($data->created_at)) }}</td>
+                        <td>{{ date('d-m-Y', strtotime($data->date)) }}</td>
                         <td>Rp. {{ strrev(implode('.',str_split(strrev(strval( $data->nominal )),3))) }}</td>
                     </tr>
                     @empty

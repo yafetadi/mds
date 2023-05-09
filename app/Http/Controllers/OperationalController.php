@@ -59,30 +59,56 @@ class OperationalController extends Controller
         }
 
         if($filter == 'Hari Ini' or $filter == Null) {
-            $operationalss =$operationalss->where('updated_at', 'LIKE', '%' . now()->today()->format('Y-m-d') . '%')->get();
+            $operationalss =$operationalss->where(DB::raw('substr(updated_at,1,10)'), now()->today()->format('Y-m-d'))->get();
+            $total = DB::table('operationals')
+                            ->select(DB::raw('SUM(IF(type = "in", nominal, -nominal)) as total'))
+                            ->where(DB::raw('substr(updated_at,1,10)'), '<', now()->today()->format('Y-m-d'))
+                            ->first()
+                            ->total;
         }
 
         if($filter == 'Tanggal') {
-            $operationalss = $operationalss->where('updated_at', 'LIKE', '%' . $date_selected . '%')->get();
+            $operationalss = $operationalss->where(DB::raw('substr(updated_at,1,10)'),$date_selected)->get();
+            $total = DB::table('operationals')
+                            ->select(DB::raw('SUM(IF(type = "in", nominal, -nominal)) as total'))
+                            ->where(DB::raw('substr(updated_at,1,10)'), '<', $date_selected)
+                            ->first()
+                            ->total;
         }
 
         if($filter == 'Bulan') {
-            $operationalss = $operationalss->where(DB::raw('substr(updated_at,1,7)'), 'LIKE', '%' . $month_selected . '%')->get();
+            $operationalss = $operationalss->where(DB::raw('substr(updated_at,1,7)'), $month_selected)->get();
+            $total = DB::table('operationals')
+                            ->select(DB::raw('SUM(IF(type = "in", nominal, -nominal)) as total'))
+                            ->where(DB::raw('substr(updated_at,1,7)'), '<', $month_selected)
+                            ->first()
+                            ->total;
         }
 
         if($filter == 'Tahun') {
-            $operationalss = $operationalss->where(DB::raw('substr(updated_at,1,4)'), 'LIKE', '%' . $year_selected . '%')->get();
+            $operationalss = $operationalss->where(DB::raw('substr(updated_at,1,4)'), $year_selected)->get();
+            $total = DB::table('operationals')
+                            ->select(DB::raw('SUM(IF(type = "in", nominal, -nominal)) as total'))
+                            ->where(DB::raw('substr(updated_at,1,4)'), '<', $year_selected)
+                            ->first()
+                            ->total;
         }
 
         if($filter == 'custom') {
-            $operationalss = $operationalss->whereBetween('updated_at', 'LIKE', '%' . [$date_start, $date_end] . '%')->get();
+            $operationalss = $operationalss->whereBetween(DB::raw('substr(updated_at,1,10)'),[$date_start, $date_end])->get();
+            $total = DB::table('operationals')
+                            ->select(DB::raw('SUM(IF(type = "in", nominal, -nominal)) as total'))
+                            ->where(DB::raw('substr(updated_at,1,10)'), '<', $date_start)
+                            ->first()
+                            ->total;
         }
 
 
-
-
+        $date = Carbon::now();
+        
 
         return view('pages.operational.list', compact([
+            'total',
             'categories', 
             'cpSales', 
             'cpUser', 
@@ -106,9 +132,32 @@ class OperationalController extends Controller
     }
 
     public function store(Request $request) {
+        if($request->name != 'ketik-sendiri'){
+            $name = $request->name;
+        }else{
+            $name = $request->namess;
+        }
+
+        if($request->keterangans){
+            $keterangan = $request->keterangans;
+        }else{
+            $keterangan = $request->keterangan;
+        }
+        $getCode = DB::table('operationals')
+                    ->select(DB::raw('max(code) as maxCode'))
+                    ->where([
+                        [DB::raw('substr(updated_at,1,7)'), date('Y-m')],
+                        ['branch_id', Auth::user()->branch_id]
+                    ])
+                    ->first();
+        $lastCode = $getCode->maxCode;
+        $no       = $lastCode;
+        $no++;
+        $code = $no;
         Operational::create([
-            'name'      => $request->name,
-            'desc'      => $request->keterangan,
+            'code'      => $code,
+            'name'      => $name,
+            'desc'      => $keterangan,
             'nominal'   => str_replace('.', '', $request->nominal),
             'user_id'   => Auth::user()->id,
             'branch_id' => Auth::user()->branch_id,
@@ -117,6 +166,8 @@ class OperationalController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Data berhasil disimpan');
+
+        // dd($request);
     }
 
     public function categoryStore(Request $request) {
@@ -175,12 +226,33 @@ class OperationalController extends Controller
     }
 
     public function saldoAwalStore(Request $request){
+        if($request->name != 'ketik-sendiri'){
+            $name = $request->name;
+        }else{
+            $name = $request->namess;
+        }
+
+        $getCode = DB::table('operationals')
+                    ->select(DB::raw('max(code) as maxCode'))
+                    ->where([
+                        [DB::raw('substr(updated_at,1,7)'), date('Y-m')],
+                        ['branch_id', Auth::user()->branch_id]
+                    ])
+                    ->first();
+        $lastCode = $getCode->maxCode;
+        $no       = $lastCode;
+        $no++;
+        $code = $no;
+
         Operational::create([
+            'code'      => $code,
             'nominal'   => str_replace('.', '', $request->saldo),
             'user_id'   => Auth::user()->id,
             'branch_id' => Auth::user()->branch_id,
             'type'      => 'in',
-            'operational_category_id' => $request->operational_category_id
+            'operational_category_id' => $request->operational_category_id,
+            'name' => $name,
+            'desc' => $request->keterangansss
         ]);
 
         return redirect()->back()->with('success', 'Data berhasil ditambahkan');
@@ -285,5 +357,12 @@ class OperationalController extends Controller
         }
 
         return view('pages.stock.list_stock_in', compact('stock_in','catalog','branches','products','stocks','suppliers','months'));
+    }
+
+    public function hapusOperational($id){
+        $operational = Operational::find($id);
+        $operational->forceDelete();
+
+        return redirect()->back()->with('success', 'Data berhasil dihapus');
     }
 }

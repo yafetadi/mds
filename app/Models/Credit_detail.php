@@ -11,7 +11,7 @@ class Credit_detail extends Model
 {
     use HasFactory, Uuid, SoftDeletes;
 
-    protected $fillable = ['credit_id','nominal','term'];
+    protected $fillable = ['credit_id','date','nominal','term'];
     protected $dates = ['deleted_at'];
 
     public function credit() {

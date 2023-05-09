@@ -5,7 +5,7 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1>Laporan Keuangan</h1>
+                <h1>Laporan Penjualan</h1>
             </div>
         </div>
     </div><!-- /.container-fluid -->
@@ -113,7 +113,7 @@
                         </div>
                         <div class="btn-group col-sm-12">
                             <button type="submit" class="btn btn-info"><i class="fas fa-search"></i></button>
-                            <a class="btn btn-default" href="{{ route('report.finance') }}"><i class="fas fa-undo"></i></a>
+                            <a class="btn btn-default" href="{{ route('report.selling') }}"><i class="fas fa-undo"></i></a>
                         </div>
                     </div>
                 </div>
@@ -126,11 +126,11 @@
     @if (!empty(request()->get('filter')))
     <div class="card">
         <div class="card-header">
-            <span id="title-excel">Laporan Keuangan @if(request()->get('filter') != 'custom') {{ request()->get('filter') }} ({{ $date }}) @elseif (request()->get('filter') == 'custom') ({{ $date }}) @endif </span>
+            <span id="title-excel">Laporan Penjualan @if(request()->get('filter') != 'custom') {{ request()->get('filter') }} ({{ $date }}) @elseif (request()->get('filter') == 'custom') ({{ $date }}) @endif </span>
         </div>
         <!-- /.card-header -->
         <div class="card-body">
-            <table class="table table-bordered" id="example3">
+            <table class="table table-bordered table-striped" style="font-size: 10pt;">
                 <thead>
                     <tr>
                         @can('isOwner')
@@ -152,87 +152,71 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @php 
+                        $total_nominal   = 0; 
+                        $total_cash      = 0; 
+                        $total_credit    = 0; 
+                        $total_remaining = 0; 
+                        $total_lunas     = 0; 
+                    @endphp
+                    @foreach($orders as $order)
                     <tr>
                         @can('isOwner')
-                        <td></td>
+                        <td>{{ $order->branch }}</td>
                         @endcan
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                    <!-- @if(isset($orders))
-                    @foreach ($orders as $a)
-                    <tr>
-                        @can('isOwner')
-                        <td>{{ $a->branch }}</td>
-                        @endcan
-                        <td>{{ date('d-m-Y', strtotime($a->created_at)) }}</td>
-                        <td>{{ $a->invoice }}</td>
-                        <td>Rp. {{ strrev(implode('.',str_split(strrev(strval( $a->grandtotal )),3))) }},-</td>
-                        <td>-</td>
-                    </tr>
-                    @endforeach
-                    @endif
-
-                    @if(isset($stock_in))
-                    @foreach ($stock_in as $b)
-                    <tr>
-                        <td>{{ $b->branch }}</td>
-                        <td>{{ $b->invoice }}</td>
-                        <td>-</td>
-                        <td>
-                            Rp. {{ strrev(implode('.',str_split(strrev(strval( $b->subtotal )),3))) }},-
+                        <td>{{ date('d-m-Y', strtotime($order->date)) }}</td>
+                        <td>{{ $order->invoice }}</td>
+                        <td>{{ $order->customer }}</td>
+                        <td class="text-right">
+                            {{ strrev(implode('.',str_split(strrev(strval( $order->grandtotal )),3))) }}
+                            @php $total_nominal += $order->grandtotal; @endphp
                         </td>
-                    </tr>
-                    @endforeach
-                    @endif
-
-                    @if(isset($operationals))
-                    @foreach ($operationals as $c)
-                    <tr>
-                        <td>{{ $c->branch }}</td>
-                        <td>{{ $c->name }}</td>
-                        <td>-</td>
-                        <td>
-                            Rp. {{ strrev(implode('.',str_split(strrev(strval( $c->nominal )),3))) }},-
+                        <td class="text-right">
+                            @if($order->payment_method == 'cash')
+                                {{ strrev(implode('.',str_split(strrev(strval( $order->grandtotal )),3))) }}
+                                @php $total_cash += $order->grandtotal;  @endphp
+                            @else
+                                -
+                            @endif
                         </td>
+                        <td class="text-right">
+                            @if($order->payment_method == 'credit')
+                                {{ strrev(implode('.',str_split(strrev(strval( $order->grandtotal )),3))) }}
+                                @php $total_credit += $order->grandtotal; @endphp 
+                            @else
+                                -
+                            @endif
+                        </td>
+                        <td class="text-right">
+                            @if($order->payment_method == 'credit' && $order->status == 'Belum Lunas')
+                                {{ strrev(implode('.',str_split(strrev(strval( $order->remaining )),3))) }}
+                                @php $total_remaining += $order->remaining; @endphp 
+                            @else
+                                -
+                            @endif
+                        </td>
+                        <td class="text-right">
+                            @if($order->payment_method == 'credit' && $order->status == 'Lunas')
+                                {{ strrev(implode('.',str_split(strrev(strval( $order->grandtotal )),3))) }}
+                                @php $total_lunas += $order->grandtotal; @endphp
+                            @elseif($order->payment_method == 'cash')
+                                {{ strrev(implode('.',str_split(strrev(strval( $order->grandtotal )),3))) }}
+                                @php $total_lunas += $order->grandtotal; @endphp
+                            @endif
+                        </td>
+                        <td><button class="btn btn-info btn-xs" onclick="detail('{{ $order->id }}')"><i class="fa fa-search"></i></button></td>
                     </tr>
                     @endforeach
-                    @endif
-                    <tr>
-                        <td></td>
-                        <td class="text-right"><b>Total</b></td>
-                        <td><b>Rp. {{ strrev(implode('.',str_split(strrev(strval( $total_income )),3))) }},-</b></td>
-                        <td><b>Rp. {{ strrev(implode('.',str_split(strrev(strval( $total_outcome )),3))) }},-</b></td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                        <td class="text-right"><b>Gross Profit</b></td>
-                        <td><b>Rp. {{ strrev(implode('.',str_split(strrev(strval( $gross_profit )),3))) }},-</b></td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                        <td class="text-right"><b>Net Profit</b></td>
-                        <td><b>Rp. {{ strrev(implode('.',str_split(strrev(strval( $net_profit )),3))) }},-</b></td>
-                        <td></td>
-                    </tr> -->
                     <tr style="background-color: lightblue; font-weight:bold;">
                         @can('isOwner')
                         <td></td>
                         @endcan
                         <td colspan="3">Total</td>
-                        <td class="text-right"></td>
-                        <td class="text-right"></td>
-                        <td class="text-right"></td>
-                        <td class="text-right"></td>
-                        <td class="text-right"></td>
+                        <td class="text-right">{{ strrev(implode('.',str_split(strrev(strval( $total_nominal )),3))) }}</td>
+                        <td class="text-right">{{ strrev(implode('.',str_split(strrev(strval( $total_cash )),3))) }}</td>
+                        <td class="text-right">{{ strrev(implode('.',str_split(strrev(strval( $total_credit )),3))) }}</td>
+                        <td class="text-right">{{ strrev(implode('.',str_split(strrev(strval( $total_remaining )),3))) }}</td>
+                        <td class="text-right">{{ strrev(implode('.',str_split(strrev(strval( $total_lunas )),3))) }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -243,6 +227,9 @@
     @endif
 </section>
 <!-- /.content -->
+<div class="modal fade" id="modalDetail" aria-hidden="true">
+    <div id="imported-page"></div> 
+</div>
 @endsection
 
 @push('script')
@@ -308,5 +295,12 @@
             }
         });
     });
+
+    function detail(id) {
+        $.get("{{ url('/transaction/history/detail') }}/" + id, {}, function(data, status) {
+            $("#imported-page").html(data);
+            $("#modalDetail").modal('show');
+        });
+    }
 </script>
 @endpush

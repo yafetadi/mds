@@ -122,7 +122,7 @@ class SellingController extends Controller
         }
 
         $countOD = Order_detail::where("order_id",$id)->count();
-        if($countOD < 10){
+        if($countOD < 12){
             $branch_id      = Auth::user()->branch_id;
             $customer_id    = $request->customer_id;
             $product_id     = $request->product_id;

@@ -13,11 +13,12 @@
         }
         body{
             max-width:210mm;
-            font-family: 'Roboto Condensed', sans-serif;
+            font-family:Arial, Helvetica, sans-serif;
             text-align: left;
-            font-size: 11pt;
+            font-size: 10pt;
             line-height: 11pt;
             margin: 0;
+            margin-top: 5px;
         }
         .container{
             margin: 5mm;
@@ -45,7 +46,7 @@
 </head>
 <body>
     @php
-        $max = 10;
+        $max = 12;
     @endphp
     <div class="container">
         <table>

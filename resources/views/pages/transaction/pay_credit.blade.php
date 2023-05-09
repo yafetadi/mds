@@ -20,7 +20,11 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="form-group col-md-12">
+                    <div class="form-group col-md-6">
+                        <label>Tanggal</label>
+                        <input type="date" class="form-control" name="date">
+                    </div>
+                    <div class="form-group col-md-6">
                         <label>Nominal</label>
                         <input type="text" class="form-control uang" name="nominal" required>
                     </div>

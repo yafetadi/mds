@@ -16,7 +16,7 @@
                     </div>
                     <div class="form-group col-md-6">
                         <label>Supplier</label>
-                        <select class="form-control select2bs4" name="suppier_id">
+                        <select class="form-control select2bs4" name="supplier_id">
                             <option disabled>== Pilih Supplier ==</option>
                             @foreach($suppliers as $supplier)
                                 <option value="{{ $supplier->id }}" {{ $stocks[0]->supplier_id == $supplier->id ? 'selected' : '' }}>{{ $supplier->name }}</option>

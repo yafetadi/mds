@@ -192,79 +192,6 @@ class ReportController extends Controller
             $date   = Carbon::parse($year_selected)->format('Y');
         }
 
-        // if($filter == 'Minggu Ini') {
-        //     $startOfWeek = now()->startOfWeek()->format('Y-m-d');
-        //     $endOfWeek   = now()->endOfWeek()->format('Y-m-d');
-        //     $stock_in  = $stock_in->whereBetween('stock_transactions.date', [$startOfWeek, $endOfWeek])->get();
-        //     $stock_out = $stock_out->whereBetween('stock_transactions.date', [$startOfWeek, $endOfWeek])->get();
-
-        //     $startWeek = now()->startOfWeek()->format('d M Y');
-        //     $endWeek   = now()->endOfWeek()->format('d M Y');
-        //     $date      = $startWeek.' sampai '.$endWeek;
-        // }
-
-        // if($filter == 'Bulan Ini') {
-        //     $startOfMonth = now()->startOfMonth()->format('Y-m-d');
-        //     $endOfMonth   = now()->endOfMonth()->format('Y-m-d');
-        //     $stock_in  = $stock_in->whereBetween('stock_transactions.date', [$startOfMonth, $endOfMonth])->get();
-        //     $stock_out = $stock_out->whereBetween('stock_transactions.date', [$startOfMonth, $endOfMonth])->get();
-
-        //     $startMonth = now()->startOfMonth()->format('d M Y');
-        //     $endMonth   = now()->endOfMonth()->format('d M Y');
-        //     $date       = $startMonth.' sampai '.$endMonth;
-        // }
-
-        // if($filter == 'Tahun Ini') {
-        //     $startOfYear = now()->startOfYear()->format('Y-m-d');
-        //     $endOfYear   = now()->endOfYear()->format('Y-m-d');
-        //     $stock_in  = $stock_in->whereBetween('stock_transactions.date', [$startOfYear, $endOfYear])->get();
-        //     $stock_out = $stock_out->whereBetween('stock_transactions.date', [$startOfYear, $endOfYear])->get();
-
-        //     $startYear = now()->startOfYear()->format('d M Y');
-        //     $endYear   = now()->endOfYear()->format('d M Y');
-        //     $date       = $startYear.' sampai '.$endYear;
-        // }
-
-        // if($filter == 'Hari Kemarin') {
-        //     $stock_in  = $stock_in->where('stock_transactions.date', now()->yesterday()->format('Y-m-d'))->get();
-        //     $stock_out = $stock_out->where('stock_transactions.date', now()->yesterday()->format('Y-m-d'))->get();
-
-        //     $date   = now()->yesterday()->format('d M Y');
-        // }
-
-        // if($filter == 'Minggu Kemarin') {
-        //     $startOfWeek = now()->subWeek()->startOfWeek()->format('Y-m-d');
-        //     $endOfWeek   = now()->subWeek()->endOfWeek()->format('Y-m-d');
-        //     $stock_in  = $stock_in->whereBetween('stock_transactions.date', [$startOfWeek, $endOfWeek])->get();
-        //     $stock_out = $stock_out->whereBetween('stock_transactions.date', [$startOfWeek, $endOfWeek])->get();
-
-        //     $startWeek = now()->subWeek()->startOfWeek()->format('d M Y');
-        //     $endWeek   = now()->subWeek()->endOfWeek()->format('d M Y');
-        //     $date      = $startWeek.' sampai '.$endWeek;
-        // }
-
-        // if($filter == 'Bulan Kemarin') {
-        //     $startOfMonth = now()->subMonth()->startOfMonth()->format('Y-m-d');
-        //     $endOfMonth   = now()->subMonth()->endOfMonth()->format('Y-m-d');
-        //     $stock_in  = $stock_in->whereBetween('stock_transactions.date', [$startOfMonth, $endOfMonth])->get();
-        //     $stock_out = $stock_out->whereBetween('stock_transactions.date', [$startOfMonth, $endOfMonth])->get();
-
-        //     $startMonth = now()->subMonth()->startOfMonth()->format('d M Y');
-        //     $endMonth   = now()->subMonth()->endOfMonth()->format('d M Y');
-        //     $date       = $startMonth.' sampai '.$endMonth;
-        // }
-
-        // if($filter == 'Tahun Kemarin') {
-        //     $startOfYear = now()->subYear()->startOfYear()->format('Y-m-d');
-        //     $endOfYear   = now()->subYear()->endOfYear()->format('Y-m-d');
-        //     $stock_in  = $stock_in->whereBetween('stock_transactions.date', [$startOfYear, $endOfYear])->get();
-        //     $stock_out = $stock_out->whereBetween('stock_transactions.date', [$startOfYear, $endOfYear])->get();
-
-        //     $startYear = now()->subYear()->startOfYear()->format('d M Y');
-        //     $endYear   = now()->subYear()->endOfYear()->format('d M Y');
-        //     $date       = $startYear.' sampai '.$endYear;
-        // }
-
         if($filter == 'custom') {
             $stock_in  = $stock_in->whereBetween('stock_transactions.date', [$date_start, $date_end])->get();
             $stock_out = $stock_out->whereBetween('stock_transactions.date', [$date_start, $date_end])->get();
@@ -312,6 +239,118 @@ class ReportController extends Controller
         return $total_stock_in;
     }
 
+    public function reportSelling(Request $request) {
+        $months  = array(
+            "01" => "Januari",
+            "02" => "Februari",
+            "03" => "Maret",
+            "04" => "April",
+            "05" => "Mei",
+            "06" => "Juni",
+            "07" => "Juli",
+            "08" => "Agustus",
+            "09" => "September",
+            "10" => "Oktober",
+            "11" => "November",
+            "12" => "Desember"
+        );
+        $user_branch_id = Auth::user()->branch_id;
+        $filter     = $request->filter;
+        $branch     = $request->branch;
+        $date       = "";
+        $date_selected = $request->date_selected;
+        $month_selected = date('Y').'-'.$request->month_selected;
+        $year_selected = $request->year_selected;
+        $date_start = Carbon::parse($request->date_start)->format('Y-m-d');
+        $date_end   = Carbon::parse($request->date_end)->format('Y-m-d');
+
+        if(Auth::user()->role =='Owner') {
+            $branches   = Branch::get();
+            $orders   = DB::table('orders')
+                            ->select(
+                                'orders.id',
+                                'orders.invoice',
+                                'orders.date',
+                                'orders.grandtotal',
+                                'orders.payment_method',
+                                'customers.company as customer',
+                                'branches.name as branch',
+                                'credits.remaining',
+                                'credits.status'
+                            )
+                            ->join('customers', 'orders.customer_id', '=', 'customers.id')
+                            ->join('branches', 'orders.branch_id', '=', 'branches.id')
+                            ->leftJoin('credits', 'orders.id', '=', 'credits.order_id')
+                            ->where('orders.status', 'print')
+                            ->orderBy('orders.date')
+                            ->orderBy('orders.invoice');
+        } else {
+            $branches = Branch::where('id', $user_branch_id)->get();
+            $orders   = DB::table('orders')
+                            ->select(
+                                'orders.id',
+                                'orders.invoice',
+                                'orders.date',
+                                'orders.grandtotal',
+                                'orders.payment_method',
+                                'customers.company as customer',
+                                'branches.name as branch',
+                                'credits.remaining',
+                                'credits.status'
+                            )
+                            ->join('customers', 'orders.customer_id', '=', 'customers.id')
+                            ->join('branches', 'orders.branch_id', '=', 'branches.id')
+                            ->leftJoin('credits', 'orders.id', '=', 'credits.order_id')
+                            ->where([
+                                ['branch_id', $user_branch_id],
+                                ['orders.status', 'print']
+                            ])
+                            ->orderBy('orders.date')
+                            ->orderBy('orders.invoice');
+        }
+
+        if($branch == Null) {
+            $orders = $orders;
+        } else {
+            $orders = $orders->where('orders.branch_id', $branch);
+        }
+
+        if($filter == 'Hari Ini' || $filter == Null) {
+            $orders = $orders->where('orders.date', now()->today()->format('Y-m-d'))->get();
+            $date   = now()->today()->format('d M Y');
+        }
+
+        if($filter == 'Tanggal') {
+            $orders = $orders->where('orders.date', $date_selected)->get();
+            $date   = Carbon::parse($date_selected)->format('d M Y');
+        }
+
+        if($filter == 'Bulan') {
+            $orders = $orders->where(DB::raw('substr(orders.date,1,7)'), $month_selected)->get();
+            $date   = Carbon::parse($month_selected)->format('M').' '.date('Y');
+        }
+
+        if($filter == 'Tahun') {
+            $orders = $orders->where(DB::raw('substr(orders.date,1,4)'), $year_selected)->get();
+            $date   = Carbon::parse($year_selected)->format('Y');
+        }
+
+        if($filter == 'custom') {
+            $orders    = $orders->whereBetween('orders.date', [$date_start, $date_end])->get();
+            $startDate = Carbon::parse($request->date_start)->format('d M Y');
+            $endDate   = Carbon::parse($request->date_end)->format('d M Y');
+            $date      = $startDate.' sampai '.$endDate;
+        }
+
+        return view('pages.report.selling', [
+            'filter'         => $filter,
+            'date'           => $date,
+            'months'         => $months,
+            'branches'       => $branches,
+            'orders'         => $orders
+        ]);
+    }
+
     public function reportFinance(Request $request) {
         $months  = array(
             "01" => "Januari",
@@ -341,9 +380,14 @@ class ReportController extends Controller
             $branches   = Branch::get();
             $orders   = DB::table('orders')
                             ->select(
-                                'orders.*',
-                                'customers.company as customer',
-                                'branches.name as branch'
+                                'orders.invoice',
+                                'orders.date',
+                                'orders.grandtotal as subtotal',
+                                'orders.payment_method',
+                                'customers.company as name',
+                                'branches.name as branch',
+                                'credits.remaining',
+                                'credits.status'
                             )
                             ->join('customers', 'orders.customer_id', '=', 'customers.id')
                             ->join('branches', 'orders.branch_id', '=', 'branches.id')
@@ -352,21 +396,17 @@ class ReportController extends Controller
 
             $stock_in   = DB::table('stock_transactions')
                             ->select(
-                                'stock_transactions.*',
-                                'stock_transactions.received_from as customer',
-                                'branches.name as branch'
+                                'stock_transactions.invoice',
+                                'stock_transactions.date',
+                                'stock_transactions.subtotal',
+                                'suppliers.name as name',
+                                'branches.name as branch',
+                                'stock_transactions.remaining',
                             )            
                             ->join('stock_transaction_details', 'stock_transactions.id', '=', 'stock_transaction_details.stock_transaction_id')         
                             ->join('branches', 'stock_transactions.branch_id', '=', 'branches.id')
                             ->where('stock_transactions.type','in')
                             ->orderBy('stock_transactions.invoice');
-                    
-            $operationals = DB::table('operationals')
-                            ->select(
-                                'operationals.*',
-                                'branches.name as branch'
-                            )
-                            ->join('branches', 'operationals.branch_id', '=', 'branches.id');
         } else {
             $branches = Branch::where('id', $user_branch_id)->get();
             $orders   = DB::table('orders')
@@ -396,29 +436,19 @@ class ReportController extends Controller
                                 ['stock_transactions.branch_id', $user_branch_id]
                             ])
                             ->orderBy('stock_transactions.invoice');
-                    
-            $operationals = DB::table('operationals')
-                            ->select(
-                                'operationals.*',
-                                'branches.name as branch'
-                            )
-                            ->join('branches', 'operationals.branch_id', '=', 'branches.id');
         }
 
         if($branch == Null) {
             $orders = $orders;
             $stock_in = $stock_in;
-            $operationals = $operationals;
         } else {
             $orders = $orders->where('orders.branch_id', $branch);
             $stock_in = $stock_in->where('stock_transactions.branch_id', $branch);
-            $operationals = $operationals->where('branch_id', $branch);
         }
 
         if($filter == 'Hari Ini' || $filter == Null) {
             $orders       = $orders->where(DB::raw('substr(orders.updated_at,1,10)'), now()->today()->format('Y-m-d'))->get();
             $stock_in     = $stock_in->where('stock_transactions.date', now()->today()->format('Y-m-d'))->get();
-            $operationals = $operationals->where(DB::raw('substr(operationals.created_at,1,10)'), now()->today()->format('Y-m-d'))->get();
 
             $date   = now()->today()->format('d M Y');
         }
@@ -426,7 +456,6 @@ class ReportController extends Controller
         if($filter == 'Tanggal') {
             $orders       = $orders->where(DB::raw('substr(orders.updated_at,1,10)'), $date_selected)->get();
             $stock_in     = $stock_in->where('stock_transactions.date', $date_selected)->get();
-            $operationals = $operationals->where(DB::raw('substr(operationals.created_at,1,10)'), $date_selected)->get();
 
             $date   = Carbon::parse($date_selected)->format('d M Y');
         }
@@ -434,7 +463,6 @@ class ReportController extends Controller
         if($filter == 'Bulan') {
             $orders       = $orders->where(DB::raw('substr(orders.updated_at,1,7)'), $month_selected)->get();
             $stock_in     = $stock_in->where(DB::raw('substr(stock_transactions.date,1,7)'), $month_selected)->get();
-            $operationals = $operationals->where(DB::raw('substr(operationals.created_at,1,7)'), $month_selected)->get();
 
             $date   = Carbon::parse($month_selected)->format('M').' '.date('Y');
         }
@@ -442,113 +470,33 @@ class ReportController extends Controller
         if($filter == 'Tahun') {
             $orders       = $orders->where(DB::raw('substr(orders.updated_at,1,4)'), $year_selected)->get();
             $stock_in     = $stock_in->where(DB::raw('substr(stock_transactions.date,1,4)'), $year_selected)->get();
-            $operationals = $operationals->where(DB::raw('substr(operationals.created_at,1,4)'), $year_selected)->get();
 
             $date   = Carbon::parse($year_selected)->format('Y');
         }
 
-        // if($filter == 'Minggu Ini') {
-        //     $startOfWeek = now()->startOfWeek()->format('Y-m-d');
-        //     $endOfWeek   = now()->endOfWeek()->format('Y-m-d');
-        //     $orders       = $orders->whereBetween(DB::raw('substr(orders.updated_at,1,10)'), [$startOfWeek, $endOfWeek])->get();
-        //     $stock_in     = $stock_in->whereBetween('stock_transactions.date', [$startOfWeek, $endOfWeek])->get();
-        //     $operationals = $operationals->whereBetween(DB::raw('substr(operationals.created_at,1,10)'), [$startOfWeek, $endOfWeek])->get();
-
-        //     $startWeek = now()->startOfWeek()->format('d M Y');
-        //     $endWeek   = now()->endOfWeek()->format('d M Y');
-        //     $date      = $startWeek.' sampai '.$endWeek;
-        // }
-
-        // if($filter == 'Bulan Ini') {
-        //     $startOfMonth = now()->startOfMonth()->format('Y-m-d');
-        //     $endOfMonth   = now()->endOfMonth()->format('Y-m-d');
-        //     $orders       = $orders->whereBetween(DB::raw('substr(orders.updated_at,1,10)'), [$startOfMonth, $endOfMonth])->get();
-        //     $stock_in     = $stock_in->whereBetween('stock_transactions.date', [$startOfMonth, $endOfMonth])->get();
-        //     $operationals = $operationals->whereBetween(DB::raw('substr(operationals.created_at,1,10)'), [$startOfMonth, $endOfMonth])->get();
-
-        //     $startMonth = now()->startOfMonth()->format('d M Y');
-        //     $endMonth   = now()->endOfMonth()->format('d M Y');
-        //     $date       = $startMonth.' sampai '.$endMonth;
-        // }
-
-        // if($filter == 'Tahun Ini') {
-        //     $startOfYear = now()->startOfYear()->format('Y-m-d');
-        //     $endOfYear   = now()->endOfYear()->format('Y-m-d');
-        //     $orders       = $orders->whereBetween(DB::raw('substr(orders.updated_at,1,10)'), [$startOfYear, $endOfYear])->get();
-        //     $stock_in     = $stock_in->whereBetween('stock_transactions.date', [$startOfYear, $endOfYear])->get();
-        //     $operationals = $operationals->whereBetween(DB::raw('substr(operationals.created_at,1,10)'), [$startOfYear, $endOfYear])->get();
-
-        //     $startYear = now()->startOfYear()->format('d M Y');
-        //     $endYear   = now()->endOfYear()->format('d M Y');
-        //     $date       = $startYear.' sampai '.$endYear;
-        // }
-
-        // if($filter == 'Hari Kemarin') {
-        //     $orders       = $orders->where(DB::raw('substr(orders.updated_at,1,10)'), now()->yesterday()->format('Y-m-d'))->get();
-        //     $stock_in     = $stock_in->where('stock_transactions.date', now()->yesterday()->format('Y-m-d'))->get();
-        //     $operationals = $operationals->where(DB::raw('substr(operationals.created_at,1,10)'), now()->yesterday()->format('Y-m-d'))->get();
-
-        //     $date   = now()->yesterday()->format('d M Y');
-        // }
-
-        // if($filter == 'Minggu Kemarin') {
-        //     $startOfWeek = now()->subWeek()->startOfWeek()->format('Y-m-d');
-        //     $endOfWeek   = now()->subWeek()->endOfWeek()->format('Y-m-d');
-        //     $orders       = $orders->whereBetween(DB::raw('substr(orders.updated_at,1,10)'), [$startOfWeek, $endOfWeek])->get();
-        //     $stock_in     = $stock_in->whereBetween('stock_transactions.date', [$startOfWeek, $endOfWeek])->get();
-        //     $operationals = $operationals->whereBetween(DB::raw('substr(operationals.created_at,1,10)'), [$startOfWeek, $endOfWeek])->get();
-
-        //     $startWeek = now()->subWeek()->startOfWeek()->format('d M Y');
-        //     $endWeek   = now()->subWeek()->endOfWeek()->format('d M Y');
-        //     $date      = $startWeek.' sampai '.$endWeek;
-        // }
-
-        // if($filter == 'Bulan Kemarin') {
-        //     $startOfMonth = now()->subMonth()->startOfMonth()->format('Y-m-d');
-        //     $endOfMonth   = now()->subMonth()->endOfMonth()->format('Y-m-d');
-        //     $orders       = $orders->whereBetween(DB::raw('substr(orders.updated_at,1,10)'), [$startOfMonth, $endOfMonth])->get();
-        //     $stock_in     = $stock_in->whereBetween('stock_transactions.date', [$startOfMonth, $endOfMonth])->get();
-        //     $operationals = $operationals->whereBetween(DB::raw('substr(operationals.created_at,1,10)'), [$startOfMonth, $endOfMonth])->get();
-
-        //     $startMonth = now()->subMonth()->startOfMonth()->format('d M Y');
-        //     $endMonth   = now()->subMonth()->endOfMonth()->format('d M Y');
-        //     $date       = $startMonth.' sampai '.$endMonth;
-        // }
-
-        // if($filter == 'Tahun Kemarin') {
-        //     $startOfYear = now()->subYear()->startOfYear()->format('Y-m-d');
-        //     $endOfYear   = now()->subYear()->endOfYear()->format('Y-m-d');
-        //     $orders       = $orders->whereBetween(DB::raw('substr(orders.updated_at,1,10)'), [$startOfYear, $endOfYear])->get();
-        //     $stock_in     = $stock_in->whereBetween('stock_transactions.date', [$startOfYear, $endOfYear])->get();
-        //     $operationals = $operationals->whereBetween(DB::raw('substr(operationals.created_at,1,10)'), [$startOfYear, $endOfYear])->get();
-
-        //     $startYear = now()->subYear()->startOfYear()->format('d M Y');
-        //     $endYear   = now()->subYear()->endOfYear()->format('d M Y');
-        //     $date       = $startYear.' sampai '.$endYear;
-        // }
-
         if($filter == 'custom') {
             $orders       = $orders->whereBetween(DB::raw('substr(orders.updated_at,1,10)'), [$date_start, $date_end])->get();
             $stock_in     = $stock_in->whereBetween('stock_transactions.date', [$date_start, $date_end])->get();
-            $operationals = $operationals->whereBetween(DB::raw('substr(operationals.created_at,1,10)'), [$date_start, $date_end])->get();
 
             $startDate = Carbon::parse($request->date_start)->format('d M Y');
             $endDate   = Carbon::parse($request->date_end)->format('d M Y');
             $date      = $startDate.' sampai '.$endDate;
         }
 
+        $report = $orders->merge($stock_in)->sortBy('updated_at');
+
         return view('pages.report.finance', [
+            'report'         => $report,
             'filter'         => $filter,
             'date'           => $date,
             'months'         => $months,
             'branches'       => $branches,
             'orders'         => $orders,
             'stock_in'       => $stock_in,
-            'operationals'   => $operationals,
             'total_income'   => $this->count_income($orders),
-            'total_outcome'  => $this->count_outcome($stock_in, $operationals),
+            'total_outcome'  => $this->count_outcome($stock_in),
             'gross_profit'   => $this->count_gross_profit($orders, $stock_in),
-            'net_profit'     => $this->count_net_profit($orders, $stock_in, $operationals)
+            'net_profit'     => $this->count_net_profit($orders, $stock_in)
         ]);
     }
 
@@ -564,15 +512,13 @@ class ReportController extends Controller
         return $total_income;
     }
 
-    private function count_outcome($stock_in, $operationals) {
+    private function count_outcome($stock_in) {
         $total_outcome = 0;
 
-        if($stock_in->count() > 0 or $operationals->count() > 0) {
+        if($stock_in->count() > 0) {
             $order       = $stock_in->pluck('subtotal')->all();
             $total_order = array_sum($order);
-            $outcome     = $operationals->pluck('nominal')->all();
-            $sub_outcome  = array_sum($outcome);
-            $total_outcome = $sub_outcome + $total_order;
+            $total_outcome = $total_order;
         }
 
         return $total_outcome;
@@ -592,17 +538,15 @@ class ReportController extends Controller
         return $total_gross_profit;
     }
 
-    public function count_net_profit($orders, $stock_in, $operationals) {
+    private function count_net_profit($orders, $stock_in) {
         $total_net_profit = 0;
 
-        if($stock_in->count() > 0 or $orders->count() > 0 or $operationals->count() > 0) {
+        if($stock_in->count() > 0 or $orders->count() > 0) {
             $order       = $orders->pluck('grandtotal')->all();
             $total_order = array_sum($order);
             $outcome     = $stock_in->pluck('subtotal')->all();
             $sub_outcome  = array_sum($outcome);
-            $outoperational = $operationals->pluck('nominal')->all();
-            $total_operational = array_sum($outoperational);
-            $total_net_profit = $total_order - ($sub_outcome + $total_operational);
+            $total_net_profit = $total_order - $sub_outcome;
         }
 
         return $total_net_profit;

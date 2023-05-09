@@ -109,7 +109,7 @@ class StockController extends Controller
                         ->join('stock_transactions', 'stock_transaction_details.stock_transaction_id', '=', 'stock_transactions.id')
                         ->join('stocks', 'stock_transaction_details.stock_id', '=', 'stocks.id')
                         ->join('products', 'stocks.product_id', '=', 'products.id')
-                        ->join('suppliers', 'stock_transactions.supplier_id', '=', 'suppliers.id')
+                        ->leftJoin('suppliers', 'stock_transactions.supplier_id', '=', 'suppliers.id')
                         ->where('stock_transaction_details.stock_id', $id)
                         ->get();
 
@@ -588,10 +588,10 @@ class StockController extends Controller
         $stock_transaction = Stock_transaction::find($id);
         $stock_transaction->date          = $request->date;
         $stock_transaction->received_from = $request->received_from;
-        $stock_transaction->submitted_by  = $request->submitted_by;
-        $stock_transaction->know          = $request->know;
-        $stock_transaction->ppn           = $request->ppn;
-        $stock_transaction->subtotal      = $request->subtotal;
+        $stock_transaction->supplier_id   = $request->supplier_id;
+        $stock_transaction->remaining     = str_replace('.', '', $request->remaining);
+        $stock_transaction->dp            = str_replace('.', '', $request->dp);
+        $stock_transaction->subtotal      = str_replace('.', '', $request->subtotal);
         $stock_transaction->desc          = $request->desc;
         $stock_transaction->user_id       = Auth::user()->id;
         $stock_transaction->save();

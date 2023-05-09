@@ -138,11 +138,13 @@ Route::controller(OperationalController::class)->middleware('auth')->group(funct
     Route::delete('/operational/category/delete/{id}', 'deleteCategory')->name('category.delete');
     Route::get('/operational/category/getcategory', 'getKeteranganFromKategori');
     Route::post('/operational/saldo-awal-store', 'saldoAwalStore')->name('category.saldoAwalStore');
+    Route::get('/operational/hapus-operational/{id}', 'hapusOperational');
 });
 
 Route::controller(ReportController::class)->middleware('auth')->group(function () {
     Route::get('/report/stock', 'reportStock')->name('report.stock');
     Route::get('/report/finance', 'reportFinance')->name('report.finance');
+    Route::get('/report/selling', 'reportSelling')->name('report.selling');
 });
 
 Route::get('/invoice/stock', function () {

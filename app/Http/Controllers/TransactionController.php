@@ -139,7 +139,7 @@ class TransactionController extends Controller
                                 'products.code as product_code',
                                 'products.name as product_name',
                                 'customers.name as customer_name',
-                                'customers.name as customer_company',
+                                'customers.company as customer_company',
                                 'users.name as user_name'
                             )
                             ->join('orders', 'order_details.order_id', '=', 'orders.id')
@@ -436,11 +436,22 @@ class TransactionController extends Controller
     public function paymentCredit(Request $request, $id) {
         $credit = Credit::find($id);
         $latestTerm = $credit->credit_detail->max('term');
-        Credit_detail::create([
-            'credit_id' => $credit->id,
-            'nominal'   => str_replace('.', '', $request->nominal),
-            'term'      => $latestTerm + 1
-        ]);
+        if(isset($request->date)) {
+            Credit_detail::create([
+                'credit_id' => $credit->id,
+                'date'      => $request->date,
+                'nominal'   => str_replace('.', '', $request->nominal),
+                'term'      => $latestTerm + 1
+            ]);
+        } else {
+            Credit_detail::create([
+                'credit_id' => $credit->id,
+                'date'      => date('Y-m-d'),
+                'nominal'   => str_replace('.', '', $request->nominal),
+                'term'      => $latestTerm + 1
+            ]);
+        }
+        
         $credit->remaining = $credit->remaining - str_replace('.', '', $request->nominal);
         if($credit->remaining == 0) {
             $credit->status = 'Lunas';

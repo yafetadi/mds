@@ -88,21 +88,21 @@
                         <div class="form-group">
                             <label>Tanggal</label>
                             <select class="form-control" name="filter" id="filter">
-                                <option disabled selected>== Pilih Tanggal ==</option>
-                                <option value="Hari Ini">Hari Ini</option>
-                                <option value="Tanggal">Tanggal</option>
-                                <option value="Bulan">Bulan</option>
-                                <option value="Tahun">Tahun</option>
-                                <option value="custom">Lainnya</option>
+                                <option disabled {{ request('filter') == null ? 'selected' : '' }}>== Pilih Tanggal ==</option>
+                                <option value="Hari Ini" {{ request('filter') == 'Hari Ini' ? 'selected' : '' }}>Hari Ini</option>
+                                <option value="Tanggal" {{ request('filter') == 'Tanggal' ? 'selected' : '' }}>Tanggal</option>
+                                <option value="Bulan" {{ request('filter') == 'Bulan' ? 'selected' : '' }}>Bulan</option>
+                                <option value="Tahun" {{ request('filter') == 'Tahun' ? 'selected' : '' }}>Tahun</option>
+                                <option value="custom" {{ request('filter') == 'custom' ? 'selected' : '' }}>Lainnya</option>
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-2" id="date_choice">
+                    <div class="col-md-3" id="date_choice">
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label>Tanggal</label>
-                                    <input type="date" id="date_selected" name="date_selected" class="form-control">
+                                    <input type="date" id="date_selected" name="date_selected" class="form-control" value="{{ request('date_selected') == null ? '' : request('date_selected') }}">
                                 </div>
                             </div>
                         </div>
@@ -113,9 +113,9 @@
                                 <div class="form-group">
                                     <label>Bulan</label>
                                     <select id="month_selected" name="month_selected" class="form-control">
-                                        <option disabled selected>== Pilih Bulan ==</option>
+                                        <option disabled {{ request('month_selected') == null ? 'selected' : '' }}>== Pilih Bulan ==</option>
                                         @foreach($months as $no => $month)
-                                        <option value="{{ $no }}">{{ $month }}</option>
+                                        <option value="{{ $no }}" {{ request('month_selected') == $no ? 'selected' : '' }}>{{ $month }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -128,10 +128,10 @@
                                 <div class="form-group">
                                     <label>Tahun</label>
                                     <select id="year_selected" name="year_selected" class="form-control">
-                                        <option disabled selected>== Pilih Tahun ==</option>
+                                        <option disabled {{ request('year_selected') == null ? 'selected' : '' }}>== Pilih Tahun ==</option>
                                         {{ $now = date('Y'); }}
                                         @for($year = 2023; $year <= $now; $year++)
-                                        <option value="{{ $year }}">{{ $year }}</option>
+                                        <option value="{{ $year }}" {{ request('year_selected') == $year ? 'selected' : '' }}>{{ $year }}</option>
                                         @endfor
                                     </select>
                                 </div>
@@ -143,13 +143,13 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>Dari Tanggal</label>
-                                    <input type="date" id="date_start" name="date_start" class="form-control">
+                                    <input type="date" id="date_start" name="date_start" class="form-control" value="{{ request('date_start') == null ? '' : request('date_start') }}">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>Sampai Tanggal</label>
-                                    <input type="date" id="date_end" name="date_end" class="form-control">
+                                    <input type="date" id="date_end" name="date_end" class="form-control" value="{{ request('date_end') == null ? '' : request('date_end') }}">
                                 </div>
                             </div>
                         </div>
@@ -170,6 +170,7 @@
                 <thead>
                     <tr>
                         <th rowspan="2" style="vertical-align:middle;"><center>No.</center></th>
+                        <th rowspan="2" style="vertical-align:middle;"><center>Kode</center></th>
                         <th rowspan="2" style="vertical-align:middle;"><center>Tanggal</center></th>
                         <th rowspan="2" style="vertical-align:middle;"><center>Nama</center></th>
                         <th rowspan="2" style="vertical-align:middle;"><center>Kategori</center></th>
@@ -187,35 +188,43 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @php
-                    $total = 0;
-                    @endphp
 
                     <a hidden>{{ $no=0 }}</a>
+                    <tr style="background-color:bisque;">
+                        <td colspan="7" style="font-weight: bold;">Sisa saldo :</td>
+                        <td colspan="3" class="uang text-right" style="font-weight: bold;">{{ $total }}</td>
+                        @can('isManager')
+                        <td></td>
+                        @endcan
+                    </tr>
                     @foreach($operationalss as $item)
                     <tr>
                         <td class="text-center">{{ ++$no }}</td>
+                        <td class="text-center">{{ $item->code }}</td>
                         <td class="text-center">{{ date('d-m-Y', strtotime($item->created_at)) }}</td>
                         <td class="text-center">{{ $item->name }}</td>
-                        <td class="text-center">{{ $item->operational_category->name }}</td>
-                        <td class="text-center">{{ $item->desc }}</td>
+                        <td class="text-left">{{ $item->operational_category->name }}</td>
+                        <td class="text-left">{{ $item->desc }}</td>
                         <td class="text-center">{{ $item->user->name }}</td>
                         @if(isset($item->type))
                             @if($item->type == 'in')
-                            <td class="uang text-center"><center>{{ $item->nominal }}</center></td>
+                            <td class="uang text-right">{{ $item->nominal }}</td>
                             <td><center>-</center></td>
                             @php $total += $item->nominal; @endphp
-                            <td class="uang text-center"><center>{{ $total }}</center></td>
+                            <td class="text-right">{{ number_format($total, 0, ',', '.') }}</td>
                             @else
                             <td><center>-</center></td>
-                            <td class="uang text-center"><center>{{ $item->nominal }}</center></td>
+                            <td class="uang text-right">{{ $item->nominal }}</td>
                             @php $total -= $item->nominal; @endphp
-                            <td class="uang text-center"><center>{{ $total }}</center></td>
+                            <td class="text-right">{{ number_format($total, 0, ',', '.') }}</td>
                             @endif
                         @endif
                         @can('isManager')
                         <td class="text-center">
                             <button class="btn btn-warning btn-sm" onclick="edit('{{ $item->id }}')"><i class="fa fa-edit"></i></button>
+                            <form action="{{ url('/operational/hapus-operational', $item->id) }}" method="get">
+                                <button class="btn btn-danger btn-sm" type="submit"><i class="fa fa-trash"></i></button>
+                            </form>
                         </td>
                         @endcan
                     </tr>
@@ -276,7 +285,6 @@
     <!-- /.modal-dialog -->
 </div>
 
-
 <!-- Modal -->
 <div class="modal fade" id="modal-saldo-awal">
     <div class="modal-dialog">
@@ -291,10 +299,40 @@
             </div>
             <div class="modal-body">
                 <div class="row">
+                <div class="col-md-12">
+                        <div class="form-group">
+                            <label>CP</label>
+                            <div id="wrapper_cp">
+                                <select id="pilih_cp" type="text" name="name" class=" form-control select2bs4">
+                                    <option disabled selected>== Pilih CP ==</option>
+                                    @foreach($cpSales as $c)
+                                    <option value="{{ $c }}">{{ $c }}</option>
+                                    @endforeach
+                                    @foreach($cpUser as $u)
+                                    <option value="{{ $u }}">{{ $u }}</option>
+                                    @endforeach
+                                    <option value="ketik-sendiri">...</option>
+                                </select>
+                            </div>
+                            <input type="text" name="namess" id="cps" class="form-control d-none" placeholder="Ketikkan CP disini...">
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label>Kategori</label>
+                            <input type="text"class="form-control" value="Tambah Saldo" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label>Keterangan</label>
+                            <input type="text" name="keterangansss" id="keterangansss" class="form-control" placeholder="Ketikkan keterangan disini...">
+                        </div>
+                    </div>
                     <div class="col-sm-12">
                         <div class="form-group">
                             <input type="hidden" id="operational_category_id" name="operational_category_id" value="{{ $ambilATM }}">
-                            <label>Saldo</label>
+                            <label>Nominal</label>
                             <input type="text" name="saldo" class="form-control uang" placeholder="Masukan jumlah saldo..." required>
                         </div>
                     </div>
@@ -310,10 +348,8 @@
     <!-- /.modal-dialog -->
 </div>
 
-
-
 <div class="modal fade" id="modal-input">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog">
         <div class="modal-content">
             <form role="form" method="POST" action="{{ route('operational.store') }}">
             @csrf
@@ -325,7 +361,25 @@
             </div>
             <div class="modal-body">
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label>CP</label>
+                            <div id="wrapper_cp">
+                                <select id="pilih_cp" type="text" name="name" class="select2bs4">
+                                    <option disabled selected>== Pilih CP ==</option>
+                                    @foreach($cpSales as $cpSales)
+                                    <option value="{{ $cpSales }}">{{ $cpSales }}</option>
+                                    @endforeach
+                                    @foreach($cpUser as $cpUser)
+                                    <option value="{{ $cpUser }}">{{ $cpUser }}</option>
+                                    @endforeach
+                                    <option value="ketik-sendiri">...</option>
+                                </select>
+                            </div>
+                            <input type="text" name="namess" id="cps" class="form-control d-none" placeholder="Ketikkan CP disini...">
+                        </div>
+                    </div>
+                    <div class="col-md-12">
                         <div class="form-group">
                             <label>Kategori</label>
                             <select type="text" name="operational_category_id" id="select_category" class="select2bs4">
@@ -336,34 +390,21 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label>CP</label>
-                            <select type="text" name="name" class="select2bs4">
-                                <option disabled selected>== Pilih CP ==</option>
-                                @foreach($cpSales as $cpSales)
-                                <option value="{{ $cpSales }}">{{ $cpSales }}</option>
-                                @endforeach
-                                @foreach($cpUser as $cpUser)
-                                <option value="{{ $cpUser }}">{{ $cpUser }}</option>
-                                @endforeach
-                            </select>
+                    <div class="col-md-12">
+                        <div class="form-group" id="keteranganss">
+                            <label>Keterangan</label>
+                            <div id="wrapper-keterangan">
+                                <select name="keterangan" id="keterangan" class="select2bs4">
+                                    <option value="#" disabled selected>== Pilih Keterangan ==</option>
+                                </select>
+                            </div>
+                            <input type="text" name="keterangans" id="keterangans" class="d-none form-control" placeholder="Ketikkan keterangan disini...">
                         </div>
                     </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-12">
                         <div class="form-group">
                             <label>Nominal</label>
                             <input type="text" name="nominal" class="form-control uang" required>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group" id="keteranganss">
-                            <label>Keterangan</label>
-                            <select name="keterangan" id="keterangan" class="select2bs4">
-                                <option value="#" disabled selected>== Pilih Keterangan ==</option>
-                            </select>
                         </div>
                     </div>
                 </div>
@@ -399,10 +440,34 @@
 
     // For Filter
     $(document).ready(function() {
-        $('#date_range').hide();
-        $('#date_choice').hide();
-        $('#month_choice').hide();
-        $('#year_choice').hide();
+        if($('#filter').val() == 'custom') {
+                $('#date_range').show();
+            } else {
+                $('#date_range').hide();
+                $('#date_start').val() == null;
+                $('#date_end').val() == null;
+            }
+
+            if($('#filter').val() == 'Tanggal') {
+                $('#date_choice').show();
+            } else {
+                $('#date_choice').hide();
+                $('#date_selected').val() == null;
+            }
+
+            if($('#filter').val() == 'Bulan') {
+                $('#month_choice').show();
+            } else {
+                $('#month_choice').hide();
+                $('#month_selected').val() == null;
+            }
+
+            if($('#filter').val() == 'Tahun') {
+                $('#year_choice').show();
+            } else {
+                $('#year_choice').hide();
+                $('#year_selected').val() == null;
+            }
 
         $('#filter').change(function () {
             if($('#filter').val() == 'custom') {
@@ -452,7 +517,7 @@
     }
 
     $('#select_category').change(function(){
-        let value = $(this).val()
+        let value = $(this).val();
         $.ajax({
             type: 'GET',
             url: '/operational/category/getcategory',
@@ -460,25 +525,40 @@
                 value: value
             },
             success: function(data){
-                var ex = data.keterangan.split(':')
-                console.log(ex)
-                var result = ex.map(function(e){
-                    return `
-                        <option name="desc" value="${e}">${e}</option>
-                    `
-                });
+                if(data.name == 'Lain-lain'){
+                    $('#wrapper-keterangan').addClass('d-none');
+                    $('#keterangans').removeClass('d-none');
 
-                $('#keterangan').html(result)
-                $('#keterangan').append(
-                    `
-                        <option name="desc" value="custom">...</option>
-                    `
-                )
+                    console.log('berhasil');
+                }
+
+                if(data.name != 'Lain-lain'){
+                    $('#wrapper-keterangan').removeClass('d-none');
+                    $('#keterangans').addClass('d-none');
+
+                    var ex = data.keterangan.split(':')
+                    console.log(ex)
+                    var result = ex.map(function(e){
+                        return `
+                            <option name="desc" value="${e}">${e}</option>
+                        `
+                    });
+
+                    $('#keterangan').html(result);
+                    $('#keterangan').append(
+                        `
+                            <option name="desc" value="custom">...</option>
+                        `
+                    );
+                    console.log('berhasil');
+                }
+
+                console.log(data.name)
             },
             error: function(err){
                 console.log(err)
             }
-        })
+        });
     });
     
     $('#keterangan').change(function(){
@@ -489,6 +569,13 @@
                     <input type="text" name="keterangan" class="form-control" placeholder="Ketikkan keterangan disini..." required>
                 `
             )
+        }
+    });
+
+    $('#pilih_cp').change(function(){
+        if($(this).val() == 'ketik-sendiri'){
+            $('#wrapper_cp').addClass('d-none');
+            $('#cps').removeClass('d-none');
         }
     });
 </script>
